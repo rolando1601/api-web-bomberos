@@ -3,8 +3,6 @@ package com.example.models
 import kotlinx.datetime.LocalDate
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.kotlin.datetime.date
-import org.jetbrains.exposed.sql.kotlin.datetime.datetime
-import java.util.Date
 
 data class Voluntario(
     val idVoluntario: Int,
@@ -43,3 +41,5 @@ object Voluntarios : Table() {
 
     override val primaryKey = PrimaryKey(idVoluntario)
 }
+
+//Insersion de fecha Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date

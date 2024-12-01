@@ -1,5 +1,6 @@
 package com.example.dao
 
+
 import com.example.dao.DatabaseSingleton.dbQuery
 import com.example.models.*
 import kotlinx.datetime.LocalDate
@@ -8,7 +9,7 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import java.util.*
 import com.example.models.ParteEmergencia
-
+import kotlinx.datetime.LocalDateTime
 
 
 class DAOFacadeImpl : DAOFacade {
@@ -838,12 +839,31 @@ class DAOFacadeImpl : DAOFacade {
         )
     }
 
-    override suspend fun allParteAsistencias(): List<ParteAsistencia> {
-        TODO("Not yet implemented")
+    // ParteAsistencia implementation
+
+    private fun resultToParteAsistencia(row: ResultRow) = ParteAsistencia(
+        folioPAsistencia = row[ParteAsistencias.folioPAsistencia],
+        tipoLlamado = row[ParteAsistencias.tipoLlamado],
+        aCargoDelCuerpo = row[ParteAsistencias.aCargoDelCuerpo],
+        aCargoDeLaCompania = row[ParteAsistencias.aCargoDeLaCompania],
+        fechaAsistencia = row[ParteAsistencias.fechaAsistencia],
+        horaInicio = row[ParteAsistencias.horaInicio],
+        horaFin = row[ParteAsistencias.horaFin],
+        direccion = row[ParteAsistencias.direccion],
+        totalAsistencia = row[ParteAsistencias.totalAsistencia],
+        observaciones = row[ParteAsistencias.observaciones],
+        materialMayorAsistencia = row[ParteAsistencias.materialMayorAsistencia]
+    )
+
+    override suspend fun allParteAsistencias(): List<ParteAsistencia> = dbQuery {
+            ParteAsistencias.selectAll().map(::resultToParteAsistencia)
     }
 
-    override suspend fun getParteAsistencia(folioPAsistencia: Int): ParteAsistencia? {
-        TODO("Not yet implemented")
+    override suspend fun getParteAsistencia(folioPAsistencia: Int): ParteAsistencia? = dbQuery {
+        ParteAsistencias.select { ParteAsistencias.folioPAsistencia eq folioPAsistencia }
+            .mapNotNull(::resultToParteAsistencia)
+            .singleOrNull()
+
     }
 
     override suspend fun createParteAsistencia(
@@ -859,11 +879,29 @@ class DAOFacadeImpl : DAOFacade {
         observaciones: String?,
         materialMayorAsistencia: String?
     ): ParteAsistencia {
-        TODO("Not yet implemented")
+        var generatedFolio = 0
+        dbQuery {
+            generatedFolio = (ParteAsistencias.insert {
+                it[ParteAsistencias.folioPAsistencia] = folioPAsistencia
+                it[ParteAsistencias.tipoLlamado] = tipoLlamado
+                it[ParteAsistencias.aCargoDelCuerpo] = aCargoDelCuerpo
+                it[ParteAsistencias.aCargoDeLaCompania] = aCargoDeLaCompania
+                it[ParteAsistencias.fechaAsistencia] = fechaAsistencia
+                it[ParteAsistencias.horaInicio] = horaInicio
+                it[ParteAsistencias.horaFin] = horaFin
+                it[ParteAsistencias.direccion] = direccion
+                it[ParteAsistencias.totalAsistencia] = totalAsistencia
+                it[ParteAsistencias.observaciones] = observaciones
+                it[ParteAsistencias.materialMayorAsistencia] = materialMayorAsistencia
+            } get ParteAsistencias.folioPAsistencia)!!
+        }
+        return ParteAsistencia(
+            generatedFolio, tipoLlamado, aCargoDelCuerpo, aCargoDeLaCompania, fechaAsistencia, horaInicio, horaFin, direccion, totalAsistencia, observaciones, materialMayorAsistencia
+        )
     }
 
-    override suspend fun deleteParteAsistencia(folioPAsistencia: Int): Boolean {
-        TODO("Not yet implemented")
+    override suspend fun deleteParteAsistencia(folioPAsistencia: Int): Boolean = dbQuery {
+        ParteAsistencias.deleteWhere { ParteAsistencias.folioPAsistencia eq folioPAsistencia } > 0
     }
 
     override suspend fun updateParteAsistencia(
@@ -879,7 +917,36 @@ class DAOFacadeImpl : DAOFacade {
         observaciones: String?,
         materialMayorAsistencia: String?
     ): ParteAsistencia {
-        TODO("Not yet implemented")
+        val rowsUpdate = dbQuery {
+            ParteAsistencias.update({ ParteAsistencias.folioPAsistencia eq folioPAsistencia }) {
+                it[ParteAsistencias.tipoLlamado] = tipoLlamado
+                it[ParteAsistencias.aCargoDelCuerpo] = aCargoDelCuerpo
+                it[ParteAsistencias.aCargoDeLaCompania] = aCargoDeLaCompania
+                it[ParteAsistencias.fechaAsistencia] = fechaAsistencia
+                it[ParteAsistencias.horaInicio] = horaInicio
+                it[ParteAsistencias.horaFin] = horaFin
+                it[ParteAsistencias.direccion] = direccion
+                it[ParteAsistencias.totalAsistencia] = totalAsistencia
+                it[ParteAsistencias.observaciones] = observaciones
+                it[ParteAsistencias.materialMayorAsistencia] = materialMayorAsistencia
+            }
+        }
+        if (rowsUpdate == 0) {
+            throw IllegalArgumentException("Parte de Asistencia con folio $folioPAsistencia no encontrado")
+        }
+        return ParteAsistencia(
+            folioPAsistencia,
+            tipoLlamado,
+            aCargoDelCuerpo,
+            aCargoDeLaCompania,
+            fechaAsistencia,
+            horaInicio,
+            horaFin,
+            direccion,
+            totalAsistencia,
+            observaciones,
+            materialMayorAsistencia
+        )
     }
 
 
