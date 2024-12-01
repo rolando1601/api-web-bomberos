@@ -38,6 +38,8 @@ dependencies {
     implementation("io.ktor:ktor-server-status-pages-jvm")
     implementation("io.ktor:ktor-server-netty-jvm")
     implementation("ch.qos.logback:logback-classic:$logback_version")
+    implementation("org.jetbrains.exposed:exposed-kotlin-datetime:0.43.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
     testImplementation("io.ktor:ktor-server-test-host-jvm")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
 

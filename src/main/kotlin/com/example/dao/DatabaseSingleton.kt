@@ -6,8 +6,6 @@ import kotlinx.coroutines.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.*
 import org.jetbrains.exposed.sql.transactions.experimental.*
-import java.sql.DriverManager
-import java.sql.SQLException
 
 object DatabaseSingleton {
 
@@ -23,6 +21,6 @@ object DatabaseSingleton {
         }
 
     }
-    suspend fun <T> dbQuery(block: suspend () -> T): T =
+    suspend fun <T> dbQuery(block: () -> ParteAsistencia): T =
         newSuspendedTransaction(Dispatchers.IO) { block() }
 }
