@@ -16,8 +16,8 @@ fun Application.module() {
     DatabaseSingleton.init()
     val dao = DAOFacadeImpl().apply {
         runBlocking {
-              deleteVoluntario(1)
 
+            createVoluntario(2, "voluntario1", "1990-01-01".toLocalDate(), "micasa", "9918111444","ab", "diabetico", "alergia", "2024-01-01".toLocalDate(), "clave", "cargo", "197976888", 1,null)
         }
     }
     // configureSerialization()

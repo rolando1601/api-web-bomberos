@@ -11,7 +11,7 @@ data class Usuario(
 
 object Usuarios : Table() {
     val idUsuario = integer("idUsuario").autoIncrement()
-    val nombreUsuario = varchar("nombreUsuario", 50)
+    val nombreUsuario = varchar("nombreUsuario", 100)
     val contrasena = varchar("contrasena", 255)
     val rol = varchar("rol", 50)
 

@@ -4,18 +4,18 @@ import org.jetbrains.exposed.sql.Table
 
 data class MaterialP(
     val idMaterialP: Int,
-    val numeroONU: String,
+    val llamarEmpresaQuimica: Boolean,
     val clasificacion: String,
-    val nombre: String,
-    val folioPEmergencia: Int
+    val nombreMaP: String,
+    val folioPEmergencia: Int?
 )
 
 object MaterialesP : Table() {
-    val idMaterialP = integer("idMaterialesP").autoIncrement()
-    val numeroONU = varchar("numeroONU", 20)
-    val clasificacion = varchar("clasificacion", 50)
-    val nombre = varchar("nombre", 100)
-    val folioPEmergencia = integer("folioPEmergencia").references(ParteEmergencias.folioPEmergencia)
+    val idMaterialP = integer("idMaterialP").autoIncrement()
+    val llamarEmpresaQuimica = bool("llamarEmpresaQuimica")
+    val clasificacion = varchar("clasificacion", 100)
+    val nombreMaP = varchar("nombreMaP", 255)
+    val folioPEmergencia = integer("folioPEmergencia").references(Partes_emergencia.folioPEmergencia).nullable()
 
     override val primaryKey = PrimaryKey(idMaterialP)
 }

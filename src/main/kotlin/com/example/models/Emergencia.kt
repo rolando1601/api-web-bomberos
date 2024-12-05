@@ -6,14 +6,15 @@ data class Emergencia(
     val idEmergencia: Int,
     val claveEmergencia: String,
     val cuadrante: String,
-    val direccion: String
+    val direccionEmergencia: String
 )
 
 object Emergencias : Table() {
     val idEmergencia = integer("idEmergencia").autoIncrement()
-    val claveEmergencia = varchar("claveEmergencia", 50)
-    val cuadrante = varchar("cuadrante", 50)
-    val direccion = varchar("direccion", 255)
+    val claveEmergencia = varchar("claveEmergencia", 100)
+    val cuadrante = text("cuadrante")
+    val direccionEmergencia = varchar("direccionEmergencia", 255)
 
     override val primaryKey = PrimaryKey(idEmergencia)
 }
+

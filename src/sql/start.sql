@@ -1,9 +1,9 @@
 -- Crear roles y asignar permisos
-CREATE ROLE bd_bomberos2 WITH LOGIN PASSWORD 'admin';
-GRANT ALL PRIVILEGES ON DATABASE bd_bomberos2 TO bd_bomberos2;
+CREATE ROLE user_bomberos WITH LOGIN PASSWORD 'admin';
+GRANT ALL PRIVILEGES ON DATABASE bd_prueba_bomberos TO user_bomberos;
 
 -- Crear la base de datos
-CREATE DATABASE bd_bomberos2 OWNER bd_bomberos2;
+CREATE DATABASE bd_prueba_bomberos OWNER user_bomberos;
 
 -- Conectarse a la base de datos
-\c bd_bomberos2
+\c bd_prueba_bomberos;

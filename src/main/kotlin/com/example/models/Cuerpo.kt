@@ -12,7 +12,7 @@ data class Cuerpo(
 
 object Cuerpos : Table() {
     val idCuerpo = integer("idCuerpo").autoIncrement()
-    val nombreCuerpo = varchar("nombreCuerpo", 100)
+    val nombreCuerpo = varchar("nombreCuerpo", 255)
     val provincia = varchar("provincia", 100)
     val region = varchar("region", 100)
     val comuna = varchar("comuna", 100)

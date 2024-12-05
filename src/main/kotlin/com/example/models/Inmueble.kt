@@ -7,15 +7,15 @@ data class Inmueble(
     val direccion: String,
     val tipoInmueble: String,
     val estadoInmueble: String,
-    val folioPEmergencia: Int
+    val folioPEmergencia: Int?
 )
 
 object Inmuebles : Table() {
     val idInmueble = integer("idInmueble").autoIncrement()
     val direccion = varchar("direccion", 255)
-    val tipoInmueble = varchar("tipoInmueble", 50)
-    val estadoInmueble = varchar("estadoInmueble", 50)
-    val folioPEmergencia = integer("folioPEmergencia").references(ParteEmergencias.folioPEmergencia)
+    val tipoInmueble = varchar("tipoInmueble", 100)
+    val estadoInmueble = text("estadoInmueble")
+    val folioPEmergencia = integer("folioPEmergencia").references(Partes_emergencia.folioPEmergencia).nullable()
 
     override val primaryKey = PrimaryKey(idInmueble)
 }

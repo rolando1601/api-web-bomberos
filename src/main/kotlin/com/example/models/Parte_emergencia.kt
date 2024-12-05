@@ -6,28 +6,28 @@ import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.kotlin.datetime.date
 import org.jetbrains.exposed.sql.kotlin.datetime.time
 
-data class ParteEmergencia(
+data class Parte_emergencia(
     val folioPEmergencia: Int,
     val tipoEmergencia: String,
     val horaInicio: LocalTime,
     val horaFin: LocalTime,
     val fechaEmergencia: LocalDate,
-    val preInforme: String?,
+    val preInforme: String,
     val oficial: String,
     val idEmergencia: Int,
-    val folioPAsistencia: Int // Ya no es nullable
+    val folioPAsistencia: Int?
 )
 
-object ParteEmergencias : Table() {
+object Partes_emergencia : Table() {
     val folioPEmergencia = integer("folioPEmergencia").autoIncrement()
-    val tipoEmergencia = varchar("tipoEmergencia", 50)
+    val tipoEmergencia = varchar("tipoEmergencia", 100)
     val horaInicio = time("horaInicio")
     val horaFin = time("horaFin")
     val fechaEmergencia = date("fechaEmergencia")
-    val preInforme = text("preInforme").nullable() // Campo nullable para preInforme
-    val oficial = varchar("oficial", 100)
+    val preInforme = text("preInforme")
+    val oficial = text("oficial")
     val idEmergencia = integer("idEmergencia").references(Emergencias.idEmergencia)
-    val folioPAsistencia = integer("folioPAsistencia")
+    val folioPAsistencia = integer("folioPAsistencia").references(Partes_asistencia.folioPAsistencia).nullable()
 
     override val primaryKey = PrimaryKey(folioPEmergencia)
 }

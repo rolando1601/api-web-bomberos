@@ -16,30 +16,32 @@ data class Voluntario(
     val fechaIngreso: LocalDate,
     val claveRadial: String,
     val cargoVoluntario: String,
-    val idUsuario: Int,
+    val rutVoluntario: String,
     val idCompania: Int,
-    val folioPEmergencia: Int,
-    val folioPAsistencia: Int
+    val idUsuario: Int?
 )
 
 object Voluntarios : Table() {
     val idVoluntario = integer("idVoluntario").autoIncrement()
-    val nombreVol = varchar("nombreVol", 50)
+    val nombreVol = varchar("nombreVol", 255)
     val fechaNac = date("fechaNac")
     val direccion = varchar("direccion", 255)
-    val numeroContacto = varchar("numeroContacto", 20)
+    val numeroContacto = varchar("numeroContacto", 15)
     val tipoSangre = varchar("tipoSangre", 3)
     val enfermedades = text("enfermedades")
     val alergias = text("alergias")
     val fechaIngreso = date("fechaIngreso")
     val claveRadial = text("claveRadial")
     val cargoVoluntario = text("cargoVoluntario")
-    val idUsuario = integer("idUsuario").references(Usuarios.idUsuario)
+    val rutVoluntario = varchar("rutVoluntario", 12)
     val idCompania = integer("idCompania").references(Companias.idCompania)
-    val folioPEmergencia = integer("folioPEmergencia")
-    val folioPAsistencia = integer("folioPAsistencia")
+    val idUsuario = integer("idUsuario").references(Usuarios.idUsuario).nullable()
 
     override val primaryKey = PrimaryKey(idVoluntario)
-}
-
 //Insersion de fecha Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+
+
+
+
+
+}
