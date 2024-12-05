@@ -2,16 +2,15 @@ package com.example.models
 
 import org.jetbrains.exposed.sql.Table
 
-data class ParteEmergenciaVoluntario(
-    val idParteVoluntario: Int,
+data class PartesEmergenciaVoluntarios(
     val folioPEmergencia: Int,
     val idVoluntario: Int
 )
 
-object PartesEmergenciaVoluntarios : Table() {
+object ParteEmergenciaVoluntario : Table() {
     val idParteVoluntario = integer("idParteVoluntario").autoIncrement()
-    val folioPEmergencia = integer("folioPEmergencia").references(Partes_emergencia.folioPEmergencia)
-    val idVoluntario = integer("idVoluntario").references(Voluntarios.idVoluntario)
+    val folioPEmergencia = integer("folioPEmergencia").references(Parte_emergencia.folioPEmergencia)
+    val idVoluntario = integer("idVoluntario").references(Voluntario.idVoluntario)
 
     override val primaryKey = PrimaryKey(idParteVoluntario)
 }

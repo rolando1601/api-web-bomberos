@@ -2,14 +2,14 @@ package com.example.models
 
 import org.jetbrains.exposed.sql.Table
 
-data class Emergencia(
-    val idEmergencia: Int,
+data class Emergencias(
+
     val claveEmergencia: String,
     val cuadrante: String,
     val direccionEmergencia: String
 )
 
-object Emergencias : Table() {
+object Emergencia : Table() {
     val idEmergencia = integer("idEmergencia").autoIncrement()
     val claveEmergencia = varchar("claveEmergencia", 100)
     val cuadrante = text("cuadrante")

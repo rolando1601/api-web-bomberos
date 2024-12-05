@@ -17,7 +17,7 @@ object DatabaseSingleton {
         val password = config.getString("database.password")
         val database = Database.connect(jdbcURL, driverClassName, user, password)
         transaction(database) {
-            SchemaUtils.create(Voluntarios)
+
         }
 
     }

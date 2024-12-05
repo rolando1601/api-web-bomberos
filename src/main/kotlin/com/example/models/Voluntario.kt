@@ -4,8 +4,8 @@ import kotlinx.datetime.LocalDate
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.kotlin.datetime.date
 
-data class Voluntario(
-    val idVoluntario: Int,
+data class Voluntarios(
+
     val nombreVol: String,
     val fechaNac: LocalDate,
     val direccion: String,
@@ -21,7 +21,7 @@ data class Voluntario(
     val idUsuario: Int?
 )
 
-object Voluntarios : Table() {
+object Voluntario : Table() {
     val idVoluntario = integer("idVoluntario").autoIncrement()
     val nombreVol = varchar("nombreVol", 255)
     val fechaNac = date("fechaNac")
@@ -34,8 +34,8 @@ object Voluntarios : Table() {
     val claveRadial = text("claveRadial")
     val cargoVoluntario = text("cargoVoluntario")
     val rutVoluntario = varchar("rutVoluntario", 12)
-    val idCompania = integer("idCompania").references(Companias.idCompania)
-    val idUsuario = integer("idUsuario").references(Usuarios.idUsuario).nullable()
+    val idCompania = integer("idCompania").references(Compania.idCompania)
+    val idUsuario = integer("idUsuario").references(Usuario.idUsuario).nullable()
 
     override val primaryKey = PrimaryKey(idVoluntario)
 //Insersion de fecha Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date

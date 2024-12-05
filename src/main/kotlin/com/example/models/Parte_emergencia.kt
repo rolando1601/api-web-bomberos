@@ -6,8 +6,7 @@ import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.kotlin.datetime.date
 import org.jetbrains.exposed.sql.kotlin.datetime.time
 
-data class Parte_emergencia(
-    val folioPEmergencia: Int,
+data class Partes_emergencia(
     val tipoEmergencia: String,
     val horaInicio: LocalTime,
     val horaFin: LocalTime,
@@ -18,7 +17,7 @@ data class Parte_emergencia(
     val folioPAsistencia: Int?
 )
 
-object Partes_emergencia : Table() {
+object Parte_emergencia : Table() {
     val folioPEmergencia = integer("folioPEmergencia").autoIncrement()
     val tipoEmergencia = varchar("tipoEmergencia", 100)
     val horaInicio = time("horaInicio")
@@ -26,8 +25,8 @@ object Partes_emergencia : Table() {
     val fechaEmergencia = date("fechaEmergencia")
     val preInforme = text("preInforme")
     val oficial = text("oficial")
-    val idEmergencia = integer("idEmergencia").references(Emergencias.idEmergencia)
-    val folioPAsistencia = integer("folioPAsistencia").references(Partes_asistencia.folioPAsistencia).nullable()
+    val idEmergencia = integer("idEmergencia").references(Emergencia.idEmergencia)
+    val folioPAsistencia = integer("folioPAsistencia").references(Parte_asistencia.folioPAsistencia).nullable()
 
     override val primaryKey = PrimaryKey(folioPEmergencia)
 }
