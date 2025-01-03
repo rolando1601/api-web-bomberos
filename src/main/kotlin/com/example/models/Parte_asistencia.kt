@@ -2,10 +2,12 @@ package com.example.models
 
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
+import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.kotlin.datetime.date
 import org.jetbrains.exposed.sql.kotlin.datetime.time
 
+@Serializable
 data class Partes_asistencia(
     val tipoLlamado: String,
     val aCargoDelCuerpo: String,
@@ -16,7 +18,6 @@ data class Partes_asistencia(
     val direccionAsistencia: String,
     val totalAsistencia: Int,
     val observaciones: String,
-    val idMovil: Int?
 )
 
 object Parte_asistencia : Table() {
@@ -30,7 +31,6 @@ object Parte_asistencia : Table() {
     val direccionAsistencia = varchar("direccionAsistencia", 255)
     val totalAsistencia = integer("totalAsistencia")
     val observaciones = text("observaciones")
-    val idMovil = integer("idMovil").references(Movil.idMovil).nullable()
 
     override val primaryKey = PrimaryKey(folioPAsistencia)
 }

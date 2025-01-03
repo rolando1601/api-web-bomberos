@@ -9,6 +9,7 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import java.util.*
 import kotlinx.datetime.LocalDateTime
+import org.jetbrains.exposed.sql.transactions.transaction
 
 
 class DAOFacadeImpl : DAOFacade {
@@ -170,16 +171,20 @@ class DAOFacadeImpl : DAOFacade {
         direccionCia: String,
         especialidad: String,
         idCuerpo: Int?
-    ): Companias {
-        dbQuery {
-            Compania.insert {
-                it[Compania.nombreCia] = nombreCia
-                it[Compania.direccionCia] = direccionCia
-                it[Compania.especialidad] = especialidad
-                it[Compania.idCuerpo] = idCuerpo
-            }
+    ): Companias = transaction {
+        val insertStatement = Compania.insert {
+            it[Compania.nombreCia] = nombreCia
+            it[Compania.direccionCia] = direccionCia
+            it[Compania.especialidad] = especialidad
+            it[Compania.idCuerpo] = idCuerpo
         }
-        return Companias(nombreCia, direccionCia, especialidad, idCuerpo)
+
+        Companias(
+            nombreCia = insertStatement[Compania.nombreCia],
+            direccionCia = insertStatement[Compania.direccionCia],
+            especialidad = insertStatement[Compania.especialidad],
+            idCuerpo = insertStatement[Compania.idCuerpo]
+        )
     }
 
     override suspend fun deleteCompania(idCompania: Int): Boolean = dbQuery {
@@ -212,7 +217,7 @@ class DAOFacadeImpl : DAOFacade {
     private fun resultToUsuario(row: ResultRow) = Usuarios(
         nombreUsuario = row[Usuario.nombreUsuario],
         contrasena = row[Usuario.contrasena],
-        rol = row[Usuario.rol]
+        idRol = row[Usuario.idRol] // idRol es requerido
     )
 
     override suspend fun allUsuarios(): List<Usuarios> = dbQuery {
@@ -228,16 +233,19 @@ class DAOFacadeImpl : DAOFacade {
     override suspend fun createUsuario(
         nombreUsuario: String,
         contrasena: String,
-        rol: String
-    ): Usuarios {
-        dbQuery {
-            Usuario.insert {
-                it[Usuario.nombreUsuario] = nombreUsuario
-                it[Usuario.contrasena] = contrasena
-                it[Usuario.rol] = rol
-            }
+        idRol: Int
+    ): Usuarios = transaction {
+        val insertStatement = Usuario.insert {
+            it[Usuario.nombreUsuario] = nombreUsuario
+            it[Usuario.contrasena] = contrasena
+            it[Usuario.idRol] = idRol
         }
-        return Usuarios( nombreUsuario, contrasena, rol)
+
+        Usuarios(
+            nombreUsuario = insertStatement[Usuario.nombreUsuario],
+            contrasena = insertStatement[Usuario.contrasena],
+            idRol = insertStatement[Usuario.idRol]
+        )
     }
 
     override suspend fun deleteUsuario(idUsuario: Int): Boolean = dbQuery {
@@ -248,19 +256,19 @@ class DAOFacadeImpl : DAOFacade {
         idUsuario: Int,
         nombreUsuario: String,
         contrasena: String,
-        rol: String
+        idRol: Int // idRol es requerido
     ): Usuarios {
         val rowsUpdated = dbQuery {
             Usuario.update({ Usuario.idUsuario eq idUsuario }) {
                 it[Usuario.nombreUsuario] = nombreUsuario
                 it[Usuario.contrasena] = contrasena
-                it[Usuario.rol] = rol
+                it[Usuario.idRol] = idRol
             }
         }
         if (rowsUpdated == 0) {
             throw IllegalArgumentException("Usuario con id $idUsuario no encontrado")
         }
-        return Usuarios( nombreUsuario, contrasena, rol)
+        return Usuarios(nombreUsuario, contrasena, idRol)
     }
 
     // Voluntario implementation
@@ -306,25 +314,38 @@ class DAOFacadeImpl : DAOFacade {
         idCompania: Int,
         idUsuario: Int?
 
-    ): Voluntarios {
-        dbQuery {
-            Voluntario.insert {
-                it[Voluntario.nombreVol] = nombreVol
-                it[Voluntario.fechaNac] = fechaNac
-                it[Voluntario.direccion] = direccion
-                it[Voluntario.numeroContacto] = numeroContacto
-                it[Voluntario.tipoSangre] = tipoSangre
-                it[Voluntario.enfermedades] = enfermedades
-                it[Voluntario.alergias] = alergias
-                it[Voluntario.fechaIngreso] = fechaIngreso
-                it[Voluntario.claveRadial] = claveRadial
-                it[Voluntario.cargoVoluntario] = cargoVoluntario
-                it[Voluntario.rutVoluntario] = rutVoluntario
-                it[Voluntario.idCompania] = idCompania
-                it[Voluntario.idUsuario] = idUsuario
-            }
+    ):  Voluntarios = transaction {
+        val insertStatement = Voluntario.insert {
+            it[Voluntario.nombreVol] = nombreVol
+            it[Voluntario.fechaNac] = fechaNac
+            it[Voluntario.direccion] = direccion
+            it[Voluntario.numeroContacto] = numeroContacto
+            it[Voluntario.tipoSangre] = tipoSangre
+            it[Voluntario.enfermedades] = enfermedades
+            it[Voluntario.alergias] = alergias
+            it[Voluntario.fechaIngreso] = fechaIngreso
+            it[Voluntario.claveRadial] = claveRadial
+            it[Voluntario.cargoVoluntario] = cargoVoluntario
+            it[Voluntario.rutVoluntario] = rutVoluntario
+            it[Voluntario.idCompania] = idCompania
+            it[Voluntario.idUsuario] = idUsuario
         }
-        return Voluntarios( nombreVol, fechaNac, direccion, numeroContacto, tipoSangre, enfermedades, alergias, fechaIngreso, claveRadial, cargoVoluntario,rutVoluntario, idCompania, idUsuario)
+
+        Voluntarios(
+            nombreVol = insertStatement[Voluntario.nombreVol],
+            fechaNac = insertStatement[Voluntario.fechaNac],
+            direccion = insertStatement[Voluntario.direccion],
+            numeroContacto = insertStatement[Voluntario.numeroContacto],
+            tipoSangre = insertStatement[Voluntario.tipoSangre],
+            enfermedades = insertStatement[Voluntario.enfermedades],
+            alergias = insertStatement[Voluntario.alergias],
+            fechaIngreso = insertStatement[Voluntario.fechaIngreso],
+            claveRadial = insertStatement[Voluntario.claveRadial],
+            cargoVoluntario = insertStatement[Voluntario.cargoVoluntario],
+            rutVoluntario = insertStatement[Voluntario.rutVoluntario],
+            idCompania = insertStatement[Voluntario.idCompania],
+            idUsuario = insertStatement[Voluntario.idUsuario]
+        )
     }
 
     override suspend fun deleteVoluntario(idVoluntario: Int): Boolean = dbQuery {
@@ -349,7 +370,7 @@ class DAOFacadeImpl : DAOFacade {
 
     ): Voluntarios {
         val rowsUpdated = dbQuery {
-            Voluntario.update({ Voluntario.idVoluntario eq idVoluntario }) {
+            Voluntario.update({ Voluntario.rutVoluntario eq rutVoluntario }) {
                 it[Voluntario.nombreVol] = nombreVol
                 it[Voluntario.fechaNac] = fechaNac
                 it[Voluntario.direccion] = direccion
@@ -706,7 +727,6 @@ class DAOFacadeImpl : DAOFacade {
         direccionAsistencia = row[Parte_asistencia.direccionAsistencia],
         totalAsistencia = row[Parte_asistencia.totalAsistencia],
         observaciones = row[Parte_asistencia.observaciones],
-        idMovil = row[Parte_asistencia.idMovil]
     )
 
     override suspend fun allParteAsistencias(): List<Partes_asistencia> = dbQuery {
@@ -729,23 +749,37 @@ class DAOFacadeImpl : DAOFacade {
         direccionAsistencia: String,
         totalAsistencia: Int,
         observaciones: String,
-        idMovil: Int?
-    ): Partes_asistencia {
-        dbQuery {
-            Parte_asistencia.insert {
-                it[Parte_asistencia.tipoLlamado] = tipoLlamado
-                it[Parte_asistencia.aCargoDelCuerpo] = aCargoDelCuerpo
-                it[Parte_asistencia.aCargoDeLaCompania] = aCargoDeLaCompania
-                it[Parte_asistencia.fechaAsistencia] = fechaAsistencia
-                it[Parte_asistencia.horaInicio] = horaInicio
-                it[Parte_asistencia.horaFin] = horaFin
-                it[Parte_asistencia.direccionAsistencia] = direccionAsistencia
-                it[Parte_asistencia.totalAsistencia] = totalAsistencia
-                it[Parte_asistencia.observaciones] = observaciones
-                it[Parte_asistencia.idMovil] = idMovil
-            }
+    ): Partes_asistencia = transaction {
+        val insertStatement = Parte_asistencia.insert {
+            it[Parte_asistencia.tipoLlamado] = tipoLlamado
+            it[Parte_asistencia.aCargoDelCuerpo] = aCargoDelCuerpo
+            it[Parte_asistencia.aCargoDeLaCompania] = aCargoDeLaCompania
+            it[Parte_asistencia.fechaAsistencia] = fechaAsistencia
+            it[Parte_asistencia.horaInicio] = horaInicio
+            it[Parte_asistencia.horaFin] = horaFin
+            it[Parte_asistencia.direccionAsistencia] = direccionAsistencia
+            it[Parte_asistencia.totalAsistencia] = totalAsistencia
+            it[Parte_asistencia.observaciones] = observaciones
         }
-        return Partes_asistencia( tipoLlamado, aCargoDelCuerpo, aCargoDeLaCompania, fechaAsistencia, horaInicio, horaFin, direccionAsistencia, totalAsistencia, observaciones, idMovil)
+        val folioPAsistencia = insertStatement.resultedValues?.get(0)?.get(Parte_asistencia.folioPAsistencia)
+            ?: throw IllegalStateException("No se pudo obtener el folio generado")
+
+        Partes_asistencia(
+            tipoLlamado,
+            aCargoDelCuerpo,
+            aCargoDeLaCompania,
+            fechaAsistencia,
+            horaInicio,
+            horaFin,
+            direccionAsistencia,
+            totalAsistencia,
+            observaciones,
+        )
+    }
+
+    // Añadir una función para verificar si existe un móvil
+    suspend fun movilExists(idMovil: Int): Boolean = transaction {
+        Movil.select { Movil.idMovil eq idMovil }.count() > 0
     }
 
     override suspend fun deleteParteAsistencia(folioPAsistencia: Int): Boolean = dbQuery {
@@ -763,7 +797,6 @@ class DAOFacadeImpl : DAOFacade {
         direccionAsistencia: String,
         totalAsistencia: Int,
         observaciones: String,
-        idMovil: Int
     ): Partes_asistencia {
         val rowsUpdated = dbQuery {
             Parte_asistencia.update({ Parte_asistencia.folioPAsistencia eq folioPAsistencia }) {
@@ -776,14 +809,13 @@ class DAOFacadeImpl : DAOFacade {
                 it[Parte_asistencia.direccionAsistencia] = direccionAsistencia
                 it[Parte_asistencia.totalAsistencia] = totalAsistencia
                 it[Parte_asistencia.observaciones] = observaciones
-                it[Parte_asistencia.idMovil] = idMovil
             }
         }
         if (rowsUpdated == 0) throw IllegalArgumentException("ParteAsistencia con folio $folioPAsistencia no encontrado")
-        return Partes_asistencia( tipoLlamado, aCargoDelCuerpo, aCargoDeLaCompania, fechaAsistencia, horaInicio, horaFin, direccionAsistencia, totalAsistencia, observaciones, idMovil)
+        return Partes_asistencia( tipoLlamado, aCargoDelCuerpo, aCargoDeLaCompania, fechaAsistencia, horaInicio, horaFin, direccionAsistencia, totalAsistencia, observaciones)
     }
 
-                // MaterialP implementation
+    // MaterialP implementation
 
     private fun resultToMaterialP(row: ResultRow) = MaterialesP(
         llamarEmpresaQuimica = row[MaterialP.llamarEmpresaQuimica],
@@ -848,7 +880,6 @@ class DAOFacadeImpl : DAOFacade {
     private fun resultToMovil(row: ResultRow) = Moviles(
         nomenclatura = row[Movil.nomenclatura],
         especialidad = row[Movil.especialidad],
-        folioPEmergencia = row[Movil.folioPEmergencia]
     )
 
     override suspend fun allMoviles(): List<Moviles> = dbQuery {
@@ -864,17 +895,22 @@ class DAOFacadeImpl : DAOFacade {
     override suspend fun createMovil(
         nomenclatura: String,
         especialidad: String,
-        folioPEmergencia: Int?
-    ): Moviles {
-        dbQuery {
-            Movil.insert {
-                it[Movil.nomenclatura] = nomenclatura
-                it[Movil.especialidad] = especialidad
-                it[Movil.folioPEmergencia] = folioPEmergencia
-            }
+    ): Moviles = transaction {
+        val insertStatement = Movil.insert {
+            it[Movil.nomenclatura] = nomenclatura
+            it[Movil.especialidad] = especialidad
         }
-        return Moviles( nomenclatura, especialidad, folioPEmergencia)
+        // Obtén el ID generado automáticamente (si existe)
+        val idMovil = insertStatement.resultedValues?.get(0)?.get(Movil.idMovil)
+            ?: throw IllegalStateException("No se pudo obtener el ID del móvil generado")
+
+        Moviles(
+            nomenclatura,
+            especialidad,
+
+        )
     }
+
 
     override suspend fun deleteMovil(idMovil: Int): Boolean = dbQuery {
         Movil.deleteWhere { Movil.idMovil eq idMovil } > 0
@@ -884,17 +920,15 @@ class DAOFacadeImpl : DAOFacade {
         idMovil: Int,
         nomenclatura: String,
         especialidad: String,
-        folioPEmergencia: Int?
     ): Moviles {
         val rowsUpdated = dbQuery {
             Movil.update({ Movil.idMovil eq idMovil }) {
                 it[Movil.nomenclatura] = nomenclatura
                 it[Movil.especialidad] = especialidad
-                it[Movil.folioPEmergencia] = folioPEmergencia
             }
         }
         if (rowsUpdated == 0) throw IllegalArgumentException("Movil con id $idMovil no encontrado")
-        return Moviles( nomenclatura, especialidad, folioPEmergencia)
+        return Moviles( nomenclatura, especialidad)
     }
 
     // ParteEmergenciaVoluntario implementation
@@ -993,6 +1027,109 @@ class DAOFacadeImpl : DAOFacade {
         if (rowsUpdated == 0) throw IllegalArgumentException("ParteAsistenciaVoluntario con id $idParteAsistenciaVoluntario no encontrado")
         return PartesAsistenciaVoluntarios( folioPAsistencia, idVoluntario)
     }
+
+    //ParteEmergenciaMovil implementation
+
+    private fun resultToParteEmergenciaMovil(row: ResultRow) = PartesEmergenciaMoviles(
+        folioPEmergencia = row[ParteEmergenciaMovil.folioPEmergencia],
+        idMovil = row[ParteEmergenciaMovil.idMovil]
+    )
+
+    override suspend fun allParteEmergenciaMovil(): List<PartesEmergenciaMoviles> = dbQuery {
+        ParteEmergenciaMovil.selectAll().map(::resultToParteEmergenciaMovil)
+    }
+
+    override suspend fun getParteEmergenciaMovil(idParteEmergenciaMovil: Int): PartesEmergenciaMoviles? = dbQuery {
+        ParteEmergenciaMovil.select { ParteEmergenciaMovil.idParteEmergenciaMovil eq idParteEmergenciaMovil }
+            .mapNotNull(::resultToParteEmergenciaMovil)
+            .singleOrNull()
+    }
+
+    override suspend fun createParteEmergenciaMovil(
+        folioPEmergencia: Int,
+        idMovil: Int
+    ): PartesEmergenciaMoviles {
+        val id = dbQuery {
+            ParteEmergenciaMovil.insert{
+                it[ParteEmergenciaMovil.folioPEmergencia] = folioPEmergencia
+                it[ParteEmergenciaMovil.idMovil] = idMovil
+            }
+        }
+        return PartesEmergenciaMoviles(folioPEmergencia, idMovil)
+    }
+
+    override suspend fun deleteParteEmergenciaMovil(idParteEmergenciaMovil: Int): Boolean = dbQuery {
+        ParteEmergenciaMovil.deleteWhere { ParteEmergenciaMovil.idParteEmergenciaMovil eq idParteEmergenciaMovil } > 0
+    }
+
+    override suspend fun updateParteEmergenciaMovil(
+        idParteEmergenciaMovil: Int,
+        folioPEmergencia: Int,
+        idMovil: Int
+    ): PartesEmergenciaMoviles {
+        val rowsUpdated = dbQuery {
+            ParteEmergenciaMovil.update({ ParteEmergenciaMovil.idParteEmergenciaMovil eq idParteEmergenciaMovil }) {
+                it[ParteEmergenciaMovil.folioPEmergencia] = folioPEmergencia
+                it[ParteEmergenciaMovil.idMovil] = idMovil
+            }
+        }
+        if (rowsUpdated == 0) throw IllegalArgumentException("ParteEmergenciaMovil con id $idParteEmergenciaMovil no encontrado")
+        return PartesEmergenciaMoviles(folioPEmergencia, idMovil)
+    }
+
+    //ParteAsistenciaMovil implementation
+
+    private fun resultToParteAsistenciaMovil(row: ResultRow) = PartesAsistenciaMoviles(
+        folioPAsistencia = row[ParteAsistenciaMovil.folioPAsistencia],
+        idMovil = row[ParteAsistenciaMovil.idMovil]
+    )
+
+    override suspend fun allParteAsistenciaMovil(): List<PartesAsistenciaMoviles> = dbQuery {
+        ParteAsistenciaMovil.selectAll().map(::resultToParteAsistenciaMovil)
+    }
+
+    override suspend fun getParteAsistenciaMovil(idParteAsistenciaMovil: Int): PartesAsistenciaMoviles? = dbQuery {
+        ParteAsistenciaMovil.select { ParteAsistenciaMovil.idParteAsistenciaMovil eq idParteAsistenciaMovil }
+            .mapNotNull(::resultToParteAsistenciaMovil)
+            .singleOrNull()
+    }
+
+    override suspend fun createParteAsistenciaMovil(
+        folioPAsistencia: Int,
+        idMovil: Int
+    ): PartesAsistenciaMoviles {
+        val id = dbQuery {
+            ParteAsistenciaMovil.insert {
+                it[ParteAsistenciaMovil.folioPAsistencia] = folioPAsistencia
+                it[ParteAsistenciaMovil.idMovil] = idMovil
+            }
+        }
+        return PartesAsistenciaMoviles(folioPAsistencia, idMovil)
+    }
+
+    override suspend fun deleteParteAsistenciaMovil(idParteAsistenciaMovil: Int): Boolean = dbQuery {
+        ParteAsistenciaMovil.deleteWhere { ParteAsistenciaMovil.idParteAsistenciaMovil eq idParteAsistenciaMovil } > 0
+    }
+
+    override suspend fun updateParteAsistenciaMovil(
+        idParteAsistenciaMovil: Int,
+        folioPAsistencia: Int,
+        idMovil: Int
+    ): PartesAsistenciaMoviles {
+        val rowsUpdated = dbQuery {
+            ParteAsistenciaMovil.update({ ParteAsistenciaMovil.idParteAsistenciaMovil eq idParteAsistenciaMovil }) {
+                it[ParteAsistenciaMovil.folioPAsistencia] = folioPAsistencia
+                it[ParteAsistenciaMovil.idMovil] = idMovil
+            }
+        }
+        if (rowsUpdated == 0) throw IllegalArgumentException("ParteAsistenciaMovil con id $idParteAsistenciaMovil no encontrado")
+        return PartesAsistenciaMoviles( folioPAsistencia, idMovil)
+    }
+
+
+    //Funciones extras
+
+
 
 }
 

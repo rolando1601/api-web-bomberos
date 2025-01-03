@@ -1,9 +1,11 @@
 package com.example.models
 
 import kotlinx.datetime.LocalDate
+import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.kotlin.datetime.date
 
+@Serializable
 data class Voluntarios(
 
     val nombreVol: String,
