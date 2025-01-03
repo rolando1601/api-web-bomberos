@@ -1,7 +1,9 @@
 package com.example.models
 
+import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.Table
 
+@Serializable
 data class Victimas(
     val rutVictima: String,
     val nombreVictima: String,

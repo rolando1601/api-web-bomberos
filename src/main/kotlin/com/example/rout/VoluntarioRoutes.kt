@@ -79,19 +79,26 @@ fun Route.voluntarioRoutes(dao: DAOFacadeImpl) {
             }
         }
 
-        // Actualizar un voluntario (PUT /voluntario/actualizar/{id})
-        put("/actualizar/{id}") {
+        // Actualizar un voluntario (PUT /voluntario/actualizar/{rutVoluntario})
+        put("/actualizar/{rutVoluntario}") {
             try {
-                val idVoluntario = call.parameters["id"]?.toIntOrNull()
-                if (idVoluntario == null) {
-                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to "ID inválido"))
-                    return@put
-                }
+                // Obtener el rutVoluntario de los parÃ¡metros de la ruta
+                val rutVoluntario = call.parameters["rutVoluntario"] ?: throw IllegalArgumentException("Rut voluntario es requerido")
 
+                // Recibimos el resto de los datos a actualizar en el cuerpo de la solicitud
                 val datosActualizados = call.receive<Voluntarios>()
 
+                // Asegurarse de que el rutVoluntario recibido en el cuerpo sea el mismo que el de la ruta
+                if (rutVoluntario != datosActualizados.rutVoluntario) {
+                    throw IllegalArgumentException("El rut en la URL no coincide con el rut en los datos enviados.")
+                }
+
+                // Obtener el idVoluntario a partir del rutVoluntario
+                val idVoluntario = dao.getIdVoluntarioByRut(rutVoluntario)
+
+                // Actualizamos el voluntario usando el idVoluntario inferido
                 val voluntarioActualizado = dao.updateVoluntario(
-                    idVoluntario = idVoluntario,
+                    idVoluntario = idVoluntario, // Usamos el idVoluntario obtenido
                     nombreVol = datosActualizados.nombreVol,
                     fechaNac = datosActualizados.fechaNac,
                     direccion = datosActualizados.direccion,
@@ -102,10 +109,11 @@ fun Route.voluntarioRoutes(dao: DAOFacadeImpl) {
                     fechaIngreso = datosActualizados.fechaIngreso,
                     claveRadial = datosActualizados.claveRadial,
                     cargoVoluntario = datosActualizados.cargoVoluntario,
-                    rutVoluntario = datosActualizados.rutVoluntario,
+                    rutVoluntario = rutVoluntario,
                     idCompania = datosActualizados.idCompania,
                     idUsuario = datosActualizados.idUsuario
                 )
+
                 call.respond(HttpStatusCode.OK, voluntarioActualizado)
             } catch (e: IllegalArgumentException) {
                 call.respond(HttpStatusCode.NotFound, mapOf("error" to e.message))

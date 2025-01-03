@@ -26,11 +26,11 @@ class DAOFacadeImpl : DAOFacade {
         folioPEmergencia = row[Institucion.folioPEmergencia]
     )
 
-    override suspend fun allInstituciones(): List<Instituciones> = dbQuery {
+    override suspend fun allInstituciones(): List<Instituciones> = transaction {
         Institucion.selectAll().map(::resultToInstitucion)
     }
 
-    override suspend fun getInstitucion(idInstitucion: Int): Instituciones? = dbQuery {
+    override suspend fun getInstitucion(idInstitucion: Int): Instituciones? = transaction {
         Institucion.select { Institucion.idInstitucion eq idInstitucion }
             .mapNotNull(::resultToInstitucion)
             .singleOrNull()
@@ -42,20 +42,18 @@ class DAOFacadeImpl : DAOFacade {
         nombrePersonaCargo: String,
         horaLlegada: LocalTime,
         folioPEmergencia: Int?
-    ): Instituciones {
-        dbQuery {
-            Institucion.insert {
-                it[Institucion.nombreInstitucion] = nombreInstitucion
-                it[Institucion.tipoInstitucion] = tipoInstitucion
-                it[Institucion.nombrePersonaCargo] = nombrePersonaCargo
-                it[Institucion.horaLlegada] = horaLlegada
-                it[Institucion.folioPEmergencia] = folioPEmergencia
-            }
+    ): Instituciones = transaction {
+        Institucion.insert {
+            it[this.nombreInstitucion] = nombreInstitucion
+            it[this.tipoInstitucion] = tipoInstitucion
+            it[this.nombrePersonaCargo] = nombrePersonaCargo
+            it[this.horaLlegada] = horaLlegada
+            it[this.folioPEmergencia] = folioPEmergencia
         }
-        return Instituciones( nombreInstitucion, tipoInstitucion, nombrePersonaCargo, horaLlegada, folioPEmergencia)
+        Instituciones(nombreInstitucion, tipoInstitucion, nombrePersonaCargo, horaLlegada, folioPEmergencia)
     }
 
-    override suspend fun deleteInstitucion(idInstitucion: Int): Boolean = dbQuery {
+    override suspend fun deleteInstitucion(idInstitucion: Int): Boolean = transaction {
         Institucion.deleteWhere { Institucion.idInstitucion eq idInstitucion } > 0
     }
 
@@ -66,27 +64,24 @@ class DAOFacadeImpl : DAOFacade {
         nombrePersonaCargo: String,
         horaLlegada: LocalTime,
         folioPEmergencia: Int?
-    ): Instituciones {
-        val rowsUpdated = dbQuery {
-            Institucion.update({ Institucion.idInstitucion eq idInstitucion }) {
-                it[Institucion.nombreInstitucion] = nombreInstitucion
-                it[Institucion.tipoInstitucion] = tipoInstitucion
-                it[Institucion.nombrePersonaCargo] = nombrePersonaCargo
-                it[Institucion.horaLlegada] = horaLlegada
-                it[Institucion.folioPEmergencia] = folioPEmergencia
-            }
+    ): Instituciones = transaction {
+        val rowsUpdated = Institucion.update({ Institucion.idInstitucion eq idInstitucion }) {
+            it[this.nombreInstitucion] = nombreInstitucion
+            it[this.tipoInstitucion] = tipoInstitucion
+            it[this.nombrePersonaCargo] = nombrePersonaCargo
+            it[this.horaLlegada] = horaLlegada
+            it[this.folioPEmergencia] = folioPEmergencia
         }
         if (rowsUpdated == 0) {
             throw IllegalArgumentException("Institución con id $idInstitucion no encontrada")
         }
-        return Instituciones(nombreInstitucion, tipoInstitucion, nombrePersonaCargo, horaLlegada, folioPEmergencia)
+        Instituciones(nombreInstitucion, tipoInstitucion, nombrePersonaCargo, horaLlegada, folioPEmergencia)
     }
 
 
     // Cuerpo implementation
 
     private fun resultToCuerpo(row: ResultRow) = Cuerpos(
-
         nombreCuerpo = row[Cuerpo.nombreCuerpo],
         provincia = row[Cuerpo.provincia],
         region = row[Cuerpo.region],
@@ -104,26 +99,31 @@ class DAOFacadeImpl : DAOFacade {
     }
 
     override suspend fun createCuerpo(
-
         nombreCuerpo: String,
         provincia: String,
         region: String,
         comuna: String
-    ): Cuerpos {
-        dbQuery {
-            Cuerpo.insert {
-
-                it[Cuerpo.nombreCuerpo] = nombreCuerpo
-                it[Cuerpo.provincia] = provincia
-                it[Cuerpo.region] = region
-                it[Cuerpo.comuna] = comuna
-            }
+    ): Cuerpos = transaction {
+        // Insertar el nuevo cuerpo en la base de datos
+        val insertStatement = Cuerpo.insert {
+            it[Cuerpo.nombreCuerpo] = nombreCuerpo
+            it[Cuerpo.provincia] = provincia
+            it[Cuerpo.region] = region
+            it[Cuerpo.comuna] = comuna
         }
-        return Cuerpos( nombreCuerpo, provincia, region, comuna)
+
+        // Crear el objeto Cuerpos con los valores insertados
+        Cuerpos(
+            nombreCuerpo = insertStatement[Cuerpo.nombreCuerpo],
+            provincia = insertStatement[Cuerpo.provincia],
+            region = insertStatement[Cuerpo.region],
+            comuna = insertStatement[Cuerpo.comuna]
+        )
     }
 
-    override suspend fun deleteCuerpo(idCuerpo: Int): Boolean = dbQuery {
-        Cuerpo.deleteWhere { Cuerpo.idCuerpo eq idCuerpo } > 0
+    override suspend fun deleteCuerpo(idCuerpo: Int): Boolean = transaction {
+        val rowsDeleted = Cuerpo.deleteWhere { Cuerpo.idCuerpo eq idCuerpo }
+        rowsDeleted > 0
     }
 
     override suspend fun updateCuerpo(
@@ -132,20 +132,24 @@ class DAOFacadeImpl : DAOFacade {
         provincia: String,
         region: String,
         comuna: String
-    ): Cuerpos {
-        val rowsUpdated = dbQuery {
-            Cuerpo.update({ Cuerpo.idCuerpo eq idCuerpo }) {
-                it[Cuerpo.nombreCuerpo] = nombreCuerpo
-                it[Cuerpo.provincia] = provincia
-                it[Cuerpo.region] = region
-                it[Cuerpo.comuna] = comuna
-            }
+    ): Cuerpos = transaction {
+        // Actualizar el cuerpo en la base de datos
+        val rowsUpdated = Cuerpo.update({ Cuerpo.idCuerpo eq idCuerpo }) {
+            it[Cuerpo.nombreCuerpo] = nombreCuerpo
+            it[Cuerpo.provincia] = provincia
+            it[Cuerpo.region] = region
+            it[Cuerpo.comuna] = comuna
         }
+
+        // Si no se actualizó ningún registro, lanzar una excepción
         if (rowsUpdated == 0) {
             throw IllegalArgumentException("Cuerpo con id $idCuerpo no encontrado")
         }
-        return Cuerpos( nombreCuerpo, provincia, region, comuna)
+
+        // Retornar el objeto actualizado
+        Cuerpos(nombreCuerpo, provincia, region, comuna)
     }
+
 
     // Compania implementation
 
@@ -370,7 +374,7 @@ class DAOFacadeImpl : DAOFacade {
 
     ): Voluntarios {
         val rowsUpdated = dbQuery {
-            Voluntario.update({ Voluntario.rutVoluntario eq rutVoluntario }) {
+            Voluntario.update({ Voluntario.idVoluntario eq idVoluntario }) {
                 it[Voluntario.nombreVol] = nombreVol
                 it[Voluntario.fechaNac] = fechaNac
                 it[Voluntario.direccion] = direccion
@@ -390,6 +394,16 @@ class DAOFacadeImpl : DAOFacade {
         return Voluntarios( nombreVol, fechaNac, direccion, numeroContacto, tipoSangre, enfermedades, alergias, fechaIngreso, claveRadial, cargoVoluntario,rutVoluntario, idCompania, idUsuario)
     }
 
+    suspend fun getIdVoluntarioByRut(rutVoluntario: String): Int {
+        return dbQuery {
+            Voluntario
+                .select { Voluntario.rutVoluntario eq rutVoluntario }
+                .mapNotNull { it[Voluntario.idVoluntario] }
+                .singleOrNull()
+                ?: throw IllegalArgumentException("Voluntario con rut $rutVoluntario no encontrado")
+        }
+    }
+
     // inmueble implementation
 
     private fun resultToInmueble(row: ResultRow) = Inmuebles(
@@ -399,36 +413,32 @@ class DAOFacadeImpl : DAOFacade {
         folioPEmergencia = row[Inmueble.folioPEmergencia]
     )
 
-    override suspend fun allInmuebles(): List<Inmuebles> = dbQuery {
+    override suspend fun allInmuebles(): List<Inmuebles> = transaction {
         Inmueble.selectAll().map(::resultToInmueble)
     }
 
-    override suspend fun getInmueble(idInmueble: Int): Inmuebles? = dbQuery {
+    override suspend fun getInmueble(idInmueble: Int): Inmuebles? = transaction {
         Inmueble.select { Inmueble.idInmueble eq idInmueble }
             .mapNotNull(::resultToInmueble)
             .singleOrNull()
     }
 
     override suspend fun createInmueble(
-
         direccion: String,
         tipoInmueble: String,
         estadoInmueble: String,
         folioPEmergencia: Int?
-    ): Inmuebles {
-        dbQuery {
-            Inmueble.insert {
-
-                it[Inmueble.direccion] = direccion
-                it[Inmueble.tipoInmueble] = tipoInmueble
-                it[Inmueble.estadoInmueble] = estadoInmueble
-                it[Inmueble.folioPEmergencia] = folioPEmergencia
-            }
+    ): Inmuebles = transaction {
+        Inmueble.insert {
+            it[this.direccion] = direccion
+            it[this.tipoInmueble] = tipoInmueble
+            it[this.estadoInmueble] = estadoInmueble
+            it[this.folioPEmergencia] = folioPEmergencia
         }
-        return Inmuebles( direccion, tipoInmueble, estadoInmueble, folioPEmergencia)
+        Inmuebles(direccion, tipoInmueble, estadoInmueble, folioPEmergencia)
     }
 
-    override suspend fun deleteInmueble(idInmueble: Int): Boolean = dbQuery {
+    override suspend fun deleteInmueble(idInmueble: Int): Boolean = transaction {
         Inmueble.deleteWhere { Inmueble.idInmueble eq idInmueble } > 0
     }
 
@@ -438,17 +448,17 @@ class DAOFacadeImpl : DAOFacade {
         tipoInmueble: String,
         estadoInmueble: String,
         folioPEmergencia: Int?
-    ): Inmuebles {
-        val rowsUpdated = dbQuery {
-            Inmueble.update({ Inmueble.idInmueble eq idInmueble }) {
-                it[Inmueble.direccion] = direccion
-                it[Inmueble.tipoInmueble] = tipoInmueble
-                it[Inmueble.estadoInmueble] = estadoInmueble
-                it[Inmueble.folioPEmergencia] = folioPEmergencia
-            }
+    ): Inmuebles = transaction {
+        val rowsUpdated = Inmueble.update({ Inmueble.idInmueble eq idInmueble }) {
+            it[this.direccion] = direccion
+            it[this.tipoInmueble] = tipoInmueble
+            it[this.estadoInmueble] = estadoInmueble
+            it[this.folioPEmergencia] = folioPEmergencia
         }
-        if (rowsUpdated == 0) throw IllegalArgumentException("Inmueble con id $idInmueble no encontrado")
-        return Inmuebles( direccion, tipoInmueble, estadoInmueble, folioPEmergencia)
+        if (rowsUpdated == 0) {
+            throw IllegalArgumentException("Inmueble con id $idInmueble no encontrado")
+        }
+        Inmuebles(direccion, tipoInmueble, estadoInmueble, folioPEmergencia)
     }
 
     // Victima implementation
@@ -461,11 +471,11 @@ class DAOFacadeImpl : DAOFacade {
         folioPEmergencia = row[Victima.folioPEmergencia]
     )
 
-    override suspend fun allVictimas(): List<Victimas> = dbQuery {
+    override suspend fun allVictimas(): List<Victimas> = transaction {
         Victima.selectAll().map(::resultToVictima)
     }
 
-    override suspend fun getVictima(idVictima: Int): Victimas? = dbQuery {
+    override suspend fun getVictima(idVictima: Int): Victimas? = transaction {
         Victima.select { Victima.idVictima eq idVictima }
             .mapNotNull(::resultToVictima)
             .singleOrNull()
@@ -477,20 +487,18 @@ class DAOFacadeImpl : DAOFacade {
         edadVictima: Int,
         descripcion: String,
         folioPEmergencia: Int
-    ): Victimas {
-        dbQuery {
-            Victima.insert {
-                it[Victima.rutVictima] = rutVictima
-                it[Victima.nombreVictima] = nombreVictima
-                it[Victima.edadVictima] = edadVictima
-                it[Victima.descripcion] = descripcion
-                it[Victima.folioPEmergencia] = folioPEmergencia
-            }
+    ): Victimas = transaction {
+        Victima.insert {
+            it[this.rutVictima] = rutVictima
+            it[this.nombreVictima] = nombreVictima
+            it[this.edadVictima] = edadVictima
+            it[this.descripcion] = descripcion
+            it[this.folioPEmergencia] = folioPEmergencia
         }
-        return Victimas( rutVictima, nombreVictima, edadVictima, descripcion, folioPEmergencia)
+        Victimas(rutVictima, nombreVictima, edadVictima, descripcion, folioPEmergencia)
     }
 
-    override suspend fun deleteVictima(idVictima: Int): Boolean = dbQuery {
+    override suspend fun deleteVictima(idVictima: Int): Boolean = transaction {
         Victima.deleteWhere { Victima.idVictima eq idVictima } > 0
     }
 
@@ -501,18 +509,16 @@ class DAOFacadeImpl : DAOFacade {
         edadVictima: Int,
         descripcion: String,
         folioPEmergencia: Int
-    ): Victimas {
-        val rowsUpdated = dbQuery {
-            Victima.update({ Victima.idVictima eq idVictima }) {
-                it[Victima.rutVictima] = rutVictima
-                it[Victima.nombreVictima] = nombreVictima
-                it[Victima.edadVictima] = edadVictima
-                it[Victima.descripcion] = descripcion
-                it[Victima.folioPEmergencia] = folioPEmergencia
-            }
+    ): Victimas = transaction {
+        val rowsUpdated = Victima.update({ Victima.idVictima eq idVictima }) {
+            it[this.rutVictima] = rutVictima
+            it[this.nombreVictima] = nombreVictima
+            it[this.edadVictima] = edadVictima
+            it[this.descripcion] = descripcion
+            it[this.folioPEmergencia] = folioPEmergencia
         }
         if (rowsUpdated == 0) throw IllegalArgumentException("Víctima con id $idVictima no encontrada")
-        return Victimas( rutVictima, nombreVictima, edadVictima, descripcion, folioPEmergencia)
+        Victimas(rutVictima, nombreVictima, edadVictima, descripcion, folioPEmergencia)
     }
 
     // Vehiculo implementation
@@ -525,11 +531,11 @@ class DAOFacadeImpl : DAOFacade {
         folioPEmergencia = row[Vehiculo.folioPEmergencia]
     )
 
-    override suspend fun allVehiculos(): List<Vehiculos> = dbQuery {
+    override suspend fun allVehiculos(): List<Vehiculos> = transaction {
         Vehiculo.selectAll().map(::resultToVehiculo)
     }
 
-    override suspend fun getVehiculo(idVehiculo: Int): Vehiculos? = dbQuery {
+    override suspend fun getVehiculo(idVehiculo: Int): Vehiculos? = transaction {
         Vehiculo.select { Vehiculo.idVehiculo eq idVehiculo }
             .mapNotNull(::resultToVehiculo)
             .singleOrNull()
@@ -541,20 +547,18 @@ class DAOFacadeImpl : DAOFacade {
         modelo: String,
         tipoVehiculo: String,
         folioPEmergencia: Int?
-    ): Vehiculos {
-        dbQuery {
-            Vehiculo.insert {
-                it[Vehiculo.patente] = patente
-                it[Vehiculo.marca] = marca
-                it[Vehiculo.modelo] = modelo
-                it[Vehiculo.tipoVehiculo] = tipoVehiculo
-                it[Vehiculo.folioPEmergencia] = folioPEmergencia
-            }
+    ): Vehiculos = transaction {
+        Vehiculo.insert {
+            it[this.patente] = patente
+            it[this.marca] = marca
+            it[this.modelo] = modelo
+            it[this.tipoVehiculo] = tipoVehiculo
+            it[this.folioPEmergencia] = folioPEmergencia
         }
-        return Vehiculos( patente, marca, modelo, tipoVehiculo, folioPEmergencia)
+        Vehiculos(patente, marca, modelo, tipoVehiculo, folioPEmergencia)
     }
 
-    override suspend fun deleteVehiculo(idVehiculo: Int): Boolean = dbQuery {
+    override suspend fun deleteVehiculo(idVehiculo: Int): Boolean = transaction {
         Vehiculo.deleteWhere { Vehiculo.idVehiculo eq idVehiculo } > 0
     }
 
@@ -565,28 +569,26 @@ class DAOFacadeImpl : DAOFacade {
         modelo: String,
         tipoVehiculo: String,
         folioPEmergencia: Int?
-    ): Vehiculos {
-        val rowsUpdated = dbQuery {
-            Vehiculo.update({ Vehiculo.idVehiculo eq idVehiculo }) {
-                it[Vehiculo.patente] = patente
-                it[Vehiculo.marca] = marca
-                it[Vehiculo.modelo] = modelo
-                it[Vehiculo.tipoVehiculo] = tipoVehiculo
-                it[Vehiculo.folioPEmergencia] = folioPEmergencia
-            }
+    ): Vehiculos = transaction {
+        val rowsUpdated = Vehiculo.update({ Vehiculo.idVehiculo eq idVehiculo }) {
+            it[this.patente] = patente
+            it[this.marca] = marca
+            it[this.modelo] = modelo
+            it[this.tipoVehiculo] = tipoVehiculo
+            it[this.folioPEmergencia] = folioPEmergencia
         }
         if (rowsUpdated == 0) throw IllegalArgumentException("Vehículo con id $idVehiculo no encontrado")
-        return Vehiculos( patente, marca, modelo, tipoVehiculo, folioPEmergencia)
+        Vehiculos(patente, marca, modelo, tipoVehiculo, folioPEmergencia)
     }
 
 
     // Emergencia implementation
 
     private fun resultToEmergencia(row: ResultRow) = Emergencias(
-
         claveEmergencia = row[Emergencia.claveEmergencia],
         cuadrante = row[Emergencia.cuadrante],
-        direccionEmergencia = row[Emergencia.direccionEmergencia]
+        direccionEmergencia = row[Emergencia.direccionEmergencia],
+        folioPEmergencia = row[Emergencia.folioPEmergencia]
     )
 
     override suspend fun allEmergencias(): List<Emergencias> = dbQuery {
@@ -600,52 +602,68 @@ class DAOFacadeImpl : DAOFacade {
     }
 
     override suspend fun createEmergencia(
-
         claveEmergencia: String,
         cuadrante: String,
-        direccionEmergencia: String
-    ): Emergencias {
-        dbQuery {
-            Emergencia.insert {
-                it[Emergencia.claveEmergencia] = claveEmergencia
-                it[Emergencia.cuadrante] = cuadrante
-                it[Emergencia.direccionEmergencia] = direccionEmergencia
-            }
+        direccionEmergencia: String,
+        folioPEmergencia: Int
+    ): Emergencias = transaction {
+        // Insertar la nueva emergencia en la base de datos
+        val insertStatement = Emergencia.insert {
+            it[Emergencia.claveEmergencia] = claveEmergencia
+            it[Emergencia.cuadrante] = cuadrante
+            it[Emergencia.direccionEmergencia] = direccionEmergencia
+            it[Emergencia.folioPEmergencia] = folioPEmergencia
         }
-        return Emergencias( claveEmergencia, cuadrante, direccionEmergencia)
+
+        // Crear el objeto Emergencias con los valores insertados
+        Emergencias(
+            claveEmergencia = insertStatement[Emergencia.claveEmergencia],
+            cuadrante = insertStatement[Emergencia.cuadrante],
+            direccionEmergencia = insertStatement[Emergencia.direccionEmergencia],
+            folioPEmergencia = insertStatement[Emergencia.folioPEmergencia]
+        )
     }
 
-    override suspend fun deleteEmergencia(idEmergencia: Int): Boolean = dbQuery {
-        Emergencia.deleteWhere { Emergencia.idEmergencia eq idEmergencia } > 0
+    override suspend fun deleteEmergencia(idEmergencia: Int): Boolean = transaction {
+        val rowsDeleted = Emergencia.deleteWhere { Emergencia.idEmergencia eq idEmergencia }
+        rowsDeleted > 0
     }
 
     override suspend fun updateEmergencia(
         idEmergencia: Int,
         claveEmergencia: String,
         cuadrante: String,
-        direccionEmergencia: String
-    ): Emergencias {
-        val rowsUpdated = dbQuery {
-            Emergencia.update({ Emergencia.idEmergencia eq idEmergencia }) {
-                it[Emergencia.claveEmergencia] = claveEmergencia
-                it[Emergencia.cuadrante] = cuadrante
-                it[Emergencia.direccionEmergencia] = direccionEmergencia
-            }
+        direccionEmergencia: String,
+        folioPEmergencia: Int
+    ): Emergencias = transaction {
+        // Actualizar la emergencia en la base de datos
+        val rowsUpdated = Emergencia.update({ Emergencia.idEmergencia eq idEmergencia }) {
+            it[Emergencia.claveEmergencia] = claveEmergencia
+            it[Emergencia.cuadrante] = cuadrante
+            it[Emergencia.direccionEmergencia] = direccionEmergencia
+            it[Emergencia.folioPEmergencia] = folioPEmergencia
         }
-        if (rowsUpdated == 0) throw IllegalArgumentException("Emergencia con id $idEmergencia no encontrada")
-        return Emergencias( claveEmergencia, cuadrante, direccionEmergencia)
+
+        // Si no se actualizó ningún registro, lanzar una excepción
+        if (rowsUpdated == 0) {
+            throw IllegalArgumentException("Emergencia con id $idEmergencia no encontrada")
+        }
+
+        // Retornar el objeto actualizado
+        Emergencias(claveEmergencia, cuadrante, direccionEmergencia, folioPEmergencia)
     }
+
 
     // ParteEmergencia implementation
 
     private fun resultToParteEmergencia(row: ResultRow) = Partes_emergencia(
+        folioPEmergencia = row[Parte_emergencia.folioPEmergencia],
         tipoEmergencia = row[Parte_emergencia.tipoEmergencia],
         horaInicio = row[Parte_emergencia.horaInicio],
         horaFin = row[Parte_emergencia.horaFin],
         fechaEmergencia = row[Parte_emergencia.fechaEmergencia],
         preInforme = row[Parte_emergencia.preInforme],
         oficial = row[Parte_emergencia.oficial],
-        idEmergencia = row[Parte_emergencia.idEmergencia],
         folioPAsistencia = row[Parte_emergencia.folioPAsistencia]
     )
 
@@ -666,22 +684,31 @@ class DAOFacadeImpl : DAOFacade {
         fechaEmergencia: LocalDate,
         preInforme: String,
         oficial: String,
-        idEmergencia: Int,
         folioPAsistencia: Int?
-    ): Partes_emergencia {
-        dbQuery {
-            Parte_emergencia.insert {
-                it[Parte_emergencia.tipoEmergencia] = tipoEmergencia
-                it[Parte_emergencia.horaInicio] = horaInicio
-                it[Parte_emergencia.horaFin] = horaFin
-                it[Parte_emergencia.fechaEmergencia] = fechaEmergencia
-                it[Parte_emergencia.preInforme] = preInforme
-                it[Parte_emergencia.oficial] = oficial
-                it[Parte_emergencia.idEmergencia] = idEmergencia
-                it[Parte_emergencia.folioPAsistencia] = folioPAsistencia
-            }
+    ): Partes_emergencia = transaction {
+        val insertStatement = Parte_emergencia.insert {
+            it[Parte_emergencia.tipoEmergencia] = tipoEmergencia
+            it[Parte_emergencia.horaInicio] = horaInicio
+            it[Parte_emergencia.horaFin] = horaFin
+            it[Parte_emergencia.fechaEmergencia] = fechaEmergencia
+            it[Parte_emergencia.preInforme] = preInforme
+            it[Parte_emergencia.oficial] = oficial
+            it[Parte_emergencia.folioPAsistencia] = folioPAsistencia
         }
-        return Partes_emergencia( tipoEmergencia, horaInicio, horaFin, fechaEmergencia, preInforme, oficial, idEmergencia, folioPAsistencia)
+
+        val folioPEmergencia = insertStatement.resultedValues?.get(0)?.get(Parte_emergencia.folioPEmergencia)
+            ?: throw IllegalStateException("No se pudo obtener el folio generado")
+
+        Partes_emergencia(
+            folioPEmergencia = folioPEmergencia,
+            tipoEmergencia = tipoEmergencia,
+            horaInicio = horaInicio,
+            horaFin = horaFin,
+            fechaEmergencia = fechaEmergencia,
+            preInforme = preInforme,
+            oficial = oficial,
+            folioPAsistencia = folioPAsistencia
+        )
     }
 
     override suspend fun deleteParteEmergencia(folioPEmergencia: Int): Boolean = dbQuery {
@@ -696,7 +723,6 @@ class DAOFacadeImpl : DAOFacade {
         fechaEmergencia: LocalDate,
         preInforme: String,
         oficial: String,
-        idEmergencia: Int,
         folioPAsistencia: Int?
     ): Partes_emergencia {
         val rowsUpdated = dbQuery {
@@ -707,12 +733,11 @@ class DAOFacadeImpl : DAOFacade {
                 it[Parte_emergencia.fechaEmergencia] = fechaEmergencia
                 it[Parte_emergencia.preInforme] = preInforme
                 it[Parte_emergencia.oficial] = oficial
-                it[Parte_emergencia.idEmergencia] = idEmergencia
                 it[Parte_emergencia.folioPAsistencia] = folioPAsistencia
             }
         }
         if (rowsUpdated == 0) throw IllegalArgumentException("ParteEmergencia con folio $folioPEmergencia no encontrado")
-        return Partes_emergencia( tipoEmergencia, horaInicio, horaFin, fechaEmergencia, preInforme, oficial, idEmergencia, folioPAsistencia)
+        return Partes_emergencia(folioPEmergencia, tipoEmergencia, horaInicio, horaFin, fechaEmergencia, preInforme, oficial, folioPAsistencia)
     }
 
     //parte_asistencia implementation
@@ -824,11 +849,11 @@ class DAOFacadeImpl : DAOFacade {
         folioPEmergencia = row[MaterialP.folioPEmergencia]
     )
 
-    override suspend fun allMaterialP(): List<MaterialesP> = dbQuery {
+    override suspend fun allMaterialesP(): List<MaterialesP> = transaction {
         MaterialP.selectAll().map(::resultToMaterialP)
     }
 
-    override suspend fun getMaterialP(idMaterialP: Int): MaterialesP? = dbQuery {
+    override suspend fun getMaterialP(idMaterialP: Int): MaterialesP? = transaction {
         MaterialP.select { MaterialP.idMaterialP eq idMaterialP }
             .mapNotNull(::resultToMaterialP)
             .singleOrNull()
@@ -839,19 +864,17 @@ class DAOFacadeImpl : DAOFacade {
         clasificacion: String,
         nombreMaP: String,
         folioPEmergencia: Int?
-    ): MaterialesP {
-        dbQuery {
-            MaterialP.insert {
-                it[MaterialP.llamarEmpresaQuimica] = llamarEmpresaQuimica
-                it[MaterialP.clasificacion] = clasificacion
-                it[MaterialP.nombreMaP] = nombreMaP
-                it[MaterialP.folioPEmergencia] = folioPEmergencia
-            }
+    ): MaterialesP = transaction {
+        MaterialP.insert {
+            it[this.llamarEmpresaQuimica] = llamarEmpresaQuimica
+            it[this.clasificacion] = clasificacion
+            it[this.nombreMaP] = nombreMaP
+            it[this.folioPEmergencia] = folioPEmergencia
         }
-        return MaterialesP( llamarEmpresaQuimica, clasificacion, nombreMaP, folioPEmergencia)
+        MaterialesP(llamarEmpresaQuimica, clasificacion, nombreMaP, folioPEmergencia)
     }
 
-    override suspend fun deleteMaterialP(idMaterialP: Int): Boolean = dbQuery {
+    override suspend fun deleteMaterialP(idMaterialP: Int): Boolean = transaction {
         MaterialP.deleteWhere { MaterialP.idMaterialP eq idMaterialP } > 0
     }
 
@@ -861,17 +884,15 @@ class DAOFacadeImpl : DAOFacade {
         clasificacion: String,
         nombreMaP: String,
         folioPEmergencia: Int?
-    ): MaterialesP {
-        val rowsUpdated = dbQuery {
-            MaterialP.update({ MaterialP.idMaterialP eq idMaterialP }) {
-                it[MaterialP.llamarEmpresaQuimica] = llamarEmpresaQuimica
-                it[MaterialP.clasificacion] = clasificacion
-                it[MaterialP.nombreMaP] = nombreMaP
-                it[MaterialP.folioPEmergencia] = folioPEmergencia
-            }
+    ): MaterialesP = transaction {
+        val rowsUpdated = MaterialP.update({ MaterialP.idMaterialP eq idMaterialP }) {
+            it[this.llamarEmpresaQuimica] = llamarEmpresaQuimica
+            it[this.clasificacion] = clasificacion
+            it[this.nombreMaP] = nombreMaP
+            it[this.folioPEmergencia] = folioPEmergencia
         }
-        if (rowsUpdated == 0) throw IllegalArgumentException("MaterialP con id $idMaterialP no encontrado")
-        return MaterialesP( llamarEmpresaQuimica, clasificacion, nombreMaP, folioPEmergencia)
+        if (rowsUpdated == 0) throw IllegalArgumentException("Material peligroso con ID $idMaterialP no encontrado")
+        MaterialesP(llamarEmpresaQuimica, clasificacion, nombreMaP, folioPEmergencia)
     }
 
 

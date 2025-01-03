@@ -11,7 +11,6 @@ import com.example.dao.DAOFacadeImpl
 fun Route.parteAsistenciaRoutes(dao: DAOFacadeImpl) {
     route("/parte-asistencia") {
 
-
         // Manejar GET /parte-asistencia directamente
         get {
             call.respond(HttpStatusCode.OK, "Ruta base de Parte Asistencia. Usa /crear o /obtener para más acciones.")
