@@ -19,6 +19,7 @@ class DAOFacadeImpl : DAOFacade {
     // Institucion implementation
 
     private fun resultToInstitucion(row: ResultRow) = Instituciones(
+        idInstitucion = row[Institucion.idInstitucion],
         nombreInstitucion = row[Institucion.nombreInstitucion],
         tipoInstitucion = row[Institucion.tipoInstitucion],
         nombrePersonaCargo = row[Institucion.nombrePersonaCargo],
@@ -43,14 +44,25 @@ class DAOFacadeImpl : DAOFacade {
         horaLlegada: LocalTime,
         folioPEmergencia: Int?
     ): Instituciones = transaction {
-        Institucion.insert {
+        val insertStatement = Institucion.insert {
             it[this.nombreInstitucion] = nombreInstitucion
             it[this.tipoInstitucion] = tipoInstitucion
             it[this.nombrePersonaCargo] = nombrePersonaCargo
             it[this.horaLlegada] = horaLlegada
             it[this.folioPEmergencia] = folioPEmergencia
         }
-        Instituciones(nombreInstitucion, tipoInstitucion, nombrePersonaCargo, horaLlegada, folioPEmergencia)
+
+        val idInstitucion = insertStatement.resultedValues?.get(0)?.get(Institucion.idInstitucion)
+            ?: throw IllegalStateException("No se pudo obtener el ID generado")
+
+        Instituciones(
+            idInstitucion = idInstitucion,
+            nombreInstitucion = nombreInstitucion,
+            tipoInstitucion = tipoInstitucion,
+            nombrePersonaCargo = nombrePersonaCargo,
+            horaLlegada = horaLlegada,
+            folioPEmergencia = folioPEmergencia
+        )
     }
 
     override suspend fun deleteInstitucion(idInstitucion: Int): Boolean = transaction {
@@ -72,12 +84,17 @@ class DAOFacadeImpl : DAOFacade {
             it[this.horaLlegada] = horaLlegada
             it[this.folioPEmergencia] = folioPEmergencia
         }
-        if (rowsUpdated == 0) {
-            throw IllegalArgumentException("Institución con id $idInstitucion no encontrada")
-        }
-        Instituciones(nombreInstitucion, tipoInstitucion, nombrePersonaCargo, horaLlegada, folioPEmergencia)
-    }
 
+        if (rowsUpdated == 0) throw IllegalArgumentException("Institución con id $idInstitucion no encontrada")
+
+        Instituciones(
+            nombreInstitucion = nombreInstitucion,
+            tipoInstitucion = tipoInstitucion,
+            nombrePersonaCargo = nombrePersonaCargo,
+            horaLlegada = horaLlegada,
+            folioPEmergencia = folioPEmergencia
+        )
+    }
 
     // Cuerpo implementation
 
@@ -104,20 +121,22 @@ class DAOFacadeImpl : DAOFacade {
         region: String,
         comuna: String
     ): Cuerpos = transaction {
-        // Insertar el nuevo cuerpo en la base de datos
         val insertStatement = Cuerpo.insert {
-            it[Cuerpo.nombreCuerpo] = nombreCuerpo
-            it[Cuerpo.provincia] = provincia
-            it[Cuerpo.region] = region
-            it[Cuerpo.comuna] = comuna
+            it[this.nombreCuerpo] = nombreCuerpo
+            it[this.provincia] = provincia
+            it[this.region] = region
+            it[this.comuna] = comuna
         }
 
-        // Crear el objeto Cuerpos con los valores insertados
+        val idCuerpo = insertStatement.resultedValues?.get(0)?.get(Cuerpo.idCuerpo)
+            ?: throw IllegalStateException("No se pudo obtener el ID generado")
+
         Cuerpos(
-            nombreCuerpo = insertStatement[Cuerpo.nombreCuerpo],
-            provincia = insertStatement[Cuerpo.provincia],
-            region = insertStatement[Cuerpo.region],
-            comuna = insertStatement[Cuerpo.comuna]
+            idCuerpo = idCuerpo,
+            nombreCuerpo = nombreCuerpo,
+            provincia = provincia,
+            region = region,
+            comuna = comuna
         )
     }
 
@@ -147,7 +166,7 @@ class DAOFacadeImpl : DAOFacade {
         }
 
         // Retornar el objeto actualizado
-        Cuerpos(nombreCuerpo, provincia, region, comuna)
+        Cuerpos(idCuerpo, nombreCuerpo, provincia, region, comuna)
     }
 
 
@@ -177,17 +196,21 @@ class DAOFacadeImpl : DAOFacade {
         idCuerpo: Int?
     ): Companias = transaction {
         val insertStatement = Compania.insert {
-            it[Compania.nombreCia] = nombreCia
-            it[Compania.direccionCia] = direccionCia
-            it[Compania.especialidad] = especialidad
-            it[Compania.idCuerpo] = idCuerpo
+            it[this.nombreCia] = nombreCia
+            it[this.direccionCia] = direccionCia
+            it[this.especialidad] = especialidad
+            it[this.idCuerpo] = idCuerpo
         }
 
+        val idCompania = insertStatement.resultedValues?.get(0)?.get(Compania.idCompania)
+            ?: throw IllegalStateException("No se pudo obtener el ID generado")
+
         Companias(
-            nombreCia = insertStatement[Compania.nombreCia],
-            direccionCia = insertStatement[Compania.direccionCia],
-            especialidad = insertStatement[Compania.especialidad],
-            idCuerpo = insertStatement[Compania.idCuerpo]
+            idCompania = idCompania,
+            nombreCia = nombreCia,
+            direccionCia = direccionCia,
+            especialidad = especialidad,
+            idCuerpo = idCuerpo
         )
     }
 
@@ -213,7 +236,7 @@ class DAOFacadeImpl : DAOFacade {
         if (rowsUpdated == 0) {
             throw IllegalArgumentException("Compañía con id $idCompania no encontrada")
         }
-        return Companias( nombreCia, direccionCia, especialidad, idCuerpo)
+        return Companias(idCompania, nombreCia, direccionCia, especialidad, idCuerpo)
     }
 
     // Usuario implementation
@@ -240,17 +263,22 @@ class DAOFacadeImpl : DAOFacade {
         idRol: Int
     ): Usuarios = transaction {
         val insertStatement = Usuario.insert {
-            it[Usuario.nombreUsuario] = nombreUsuario
-            it[Usuario.contrasena] = contrasena
-            it[Usuario.idRol] = idRol
+            it[this.nombreUsuario] = nombreUsuario
+            it[this.contrasena] = contrasena
+            it[this.idRol] = idRol
         }
 
+        val idUsuario = insertStatement.resultedValues?.get(0)?.get(Usuario.idUsuario)
+            ?: throw IllegalStateException("No se pudo obtener el ID generado")
+
         Usuarios(
-            nombreUsuario = insertStatement[Usuario.nombreUsuario],
-            contrasena = insertStatement[Usuario.contrasena],
-            idRol = insertStatement[Usuario.idRol]
+            idUsuario = idUsuario,
+            nombreUsuario = nombreUsuario,
+            contrasena = contrasena,
+            idRol = idRol
         )
     }
+
 
     override suspend fun deleteUsuario(idUsuario: Int): Boolean = dbQuery {
         Usuario.deleteWhere { Usuario.idUsuario eq idUsuario } > 0
@@ -272,7 +300,7 @@ class DAOFacadeImpl : DAOFacade {
         if (rowsUpdated == 0) {
             throw IllegalArgumentException("Usuario con id $idUsuario no encontrado")
         }
-        return Usuarios(nombreUsuario, contrasena, idRol)
+        return Usuarios(idUsuario, nombreUsuario, contrasena, idRol)
     }
 
     // Voluntario implementation
@@ -317,38 +345,41 @@ class DAOFacadeImpl : DAOFacade {
         rutVoluntario: String,
         idCompania: Int,
         idUsuario: Int?
-
-    ):  Voluntarios = transaction {
+    ): Voluntarios = transaction {
         val insertStatement = Voluntario.insert {
-            it[Voluntario.nombreVol] = nombreVol
-            it[Voluntario.fechaNac] = fechaNac
-            it[Voluntario.direccion] = direccion
-            it[Voluntario.numeroContacto] = numeroContacto
-            it[Voluntario.tipoSangre] = tipoSangre
-            it[Voluntario.enfermedades] = enfermedades
-            it[Voluntario.alergias] = alergias
-            it[Voluntario.fechaIngreso] = fechaIngreso
-            it[Voluntario.claveRadial] = claveRadial
-            it[Voluntario.cargoVoluntario] = cargoVoluntario
-            it[Voluntario.rutVoluntario] = rutVoluntario
-            it[Voluntario.idCompania] = idCompania
-            it[Voluntario.idUsuario] = idUsuario
+            it[this.nombreVol] = nombreVol
+            it[this.fechaNac] = fechaNac
+            it[this.direccion] = direccion
+            it[this.numeroContacto] = numeroContacto
+            it[this.tipoSangre] = tipoSangre
+            it[this.enfermedades] = enfermedades
+            it[this.alergias] = alergias
+            it[this.fechaIngreso] = fechaIngreso
+            it[this.claveRadial] = claveRadial
+            it[this.cargoVoluntario] = cargoVoluntario
+            it[this.rutVoluntario] = rutVoluntario
+            it[this.idCompania] = idCompania
+            it[this.idUsuario] = idUsuario
         }
 
+        val idVoluntario = insertStatement.resultedValues?.get(0)?.get(Voluntario.idVoluntario)
+            ?: throw IllegalStateException("No se pudo obtener el ID generado")
+
         Voluntarios(
-            nombreVol = insertStatement[Voluntario.nombreVol],
-            fechaNac = insertStatement[Voluntario.fechaNac],
-            direccion = insertStatement[Voluntario.direccion],
-            numeroContacto = insertStatement[Voluntario.numeroContacto],
-            tipoSangre = insertStatement[Voluntario.tipoSangre],
-            enfermedades = insertStatement[Voluntario.enfermedades],
-            alergias = insertStatement[Voluntario.alergias],
-            fechaIngreso = insertStatement[Voluntario.fechaIngreso],
-            claveRadial = insertStatement[Voluntario.claveRadial],
-            cargoVoluntario = insertStatement[Voluntario.cargoVoluntario],
-            rutVoluntario = insertStatement[Voluntario.rutVoluntario],
-            idCompania = insertStatement[Voluntario.idCompania],
-            idUsuario = insertStatement[Voluntario.idUsuario]
+            idVoluntario = idVoluntario,
+            nombreVol = nombreVol,
+            fechaNac = fechaNac,
+            direccion = direccion,
+            numeroContacto = numeroContacto,
+            tipoSangre = tipoSangre,
+            enfermedades = enfermedades,
+            alergias = alergias,
+            fechaIngreso = fechaIngreso,
+            claveRadial = claveRadial,
+            cargoVoluntario = cargoVoluntario,
+            rutVoluntario = rutVoluntario,
+            idCompania = idCompania,
+            idUsuario = idUsuario
         )
     }
 
@@ -391,7 +422,7 @@ class DAOFacadeImpl : DAOFacade {
             }
         }
         if (rowsUpdated == 0) throw IllegalArgumentException("Voluntario con id $idVoluntario no encontrado")
-        return Voluntarios( nombreVol, fechaNac, direccion, numeroContacto, tipoSangre, enfermedades, alergias, fechaIngreso, claveRadial, cargoVoluntario,rutVoluntario, idCompania, idUsuario)
+        return Voluntarios( idVoluntario, nombreVol, fechaNac, direccion, numeroContacto, tipoSangre, enfermedades, alergias, fechaIngreso, claveRadial, cargoVoluntario,rutVoluntario, idCompania, idUsuario)
     }
 
     suspend fun getIdVoluntarioByRut(rutVoluntario: String): Int {
@@ -429,13 +460,23 @@ class DAOFacadeImpl : DAOFacade {
         estadoInmueble: String,
         folioPEmergencia: Int?
     ): Inmuebles = transaction {
-        Inmueble.insert {
+        val insertStatement = Inmueble.insert {
             it[this.direccion] = direccion
             it[this.tipoInmueble] = tipoInmueble
             it[this.estadoInmueble] = estadoInmueble
             it[this.folioPEmergencia] = folioPEmergencia
         }
-        Inmuebles(direccion, tipoInmueble, estadoInmueble, folioPEmergencia)
+
+        val idInmueble = insertStatement.resultedValues?.get(0)?.get(Inmueble.idInmueble)
+            ?: throw IllegalStateException("No se pudo obtener el ID generado")
+
+        Inmuebles(
+            idInmueble = idInmueble,
+            direccion = direccion,
+            tipoInmueble = tipoInmueble,
+            estadoInmueble = estadoInmueble,
+            folioPEmergencia = folioPEmergencia
+        )
     }
 
     override suspend fun deleteInmueble(idInmueble: Int): Boolean = transaction {
@@ -458,7 +499,7 @@ class DAOFacadeImpl : DAOFacade {
         if (rowsUpdated == 0) {
             throw IllegalArgumentException("Inmueble con id $idInmueble no encontrado")
         }
-        Inmuebles(direccion, tipoInmueble, estadoInmueble, folioPEmergencia)
+        Inmuebles(idInmueble, direccion, tipoInmueble, estadoInmueble, folioPEmergencia)
     }
 
     // Victima implementation
@@ -488,14 +529,25 @@ class DAOFacadeImpl : DAOFacade {
         descripcion: String,
         folioPEmergencia: Int
     ): Victimas = transaction {
-        Victima.insert {
+        val insertStatement = Victima.insert {
             it[this.rutVictima] = rutVictima
             it[this.nombreVictima] = nombreVictima
             it[this.edadVictima] = edadVictima
             it[this.descripcion] = descripcion
             it[this.folioPEmergencia] = folioPEmergencia
         }
-        Victimas(rutVictima, nombreVictima, edadVictima, descripcion, folioPEmergencia)
+
+        val idVictima = insertStatement.resultedValues?.get(0)?.get(Victima.idVictima)
+            ?: throw IllegalStateException("No se pudo obtener el ID generado")
+
+        Victimas(
+            idVictima = idVictima,
+            rutVictima = rutVictima,
+            nombreVictima = nombreVictima,
+            edadVictima = edadVictima,
+            descripcion = descripcion,
+            folioPEmergencia = folioPEmergencia
+        )
     }
 
     override suspend fun deleteVictima(idVictima: Int): Boolean = transaction {
@@ -518,7 +570,7 @@ class DAOFacadeImpl : DAOFacade {
             it[this.folioPEmergencia] = folioPEmergencia
         }
         if (rowsUpdated == 0) throw IllegalArgumentException("Víctima con id $idVictima no encontrada")
-        Victimas(rutVictima, nombreVictima, edadVictima, descripcion, folioPEmergencia)
+        Victimas(idVictima, rutVictima, nombreVictima, edadVictima, descripcion, folioPEmergencia)
     }
 
     // Vehiculo implementation
@@ -548,15 +600,27 @@ class DAOFacadeImpl : DAOFacade {
         tipoVehiculo: String,
         folioPEmergencia: Int?
     ): Vehiculos = transaction {
-        Vehiculo.insert {
+        val insertStatement = Vehiculo.insert {
             it[this.patente] = patente
             it[this.marca] = marca
             it[this.modelo] = modelo
             it[this.tipoVehiculo] = tipoVehiculo
             it[this.folioPEmergencia] = folioPEmergencia
         }
-        Vehiculos(patente, marca, modelo, tipoVehiculo, folioPEmergencia)
+
+        val idVehiculo = insertStatement.resultedValues?.get(0)?.get(Vehiculo.idVehiculo)
+            ?: throw IllegalStateException("No se pudo obtener el ID generado")
+
+        Vehiculos(
+            idVehiculo = idVehiculo,
+            patente = patente,
+            marca = marca,
+            modelo = modelo,
+            tipoVehiculo = tipoVehiculo,
+            folioPEmergencia = folioPEmergencia
+        )
     }
+
 
     override suspend fun deleteVehiculo(idVehiculo: Int): Boolean = transaction {
         Vehiculo.deleteWhere { Vehiculo.idVehiculo eq idVehiculo } > 0
@@ -578,7 +642,7 @@ class DAOFacadeImpl : DAOFacade {
             it[this.folioPEmergencia] = folioPEmergencia
         }
         if (rowsUpdated == 0) throw IllegalArgumentException("Vehículo con id $idVehiculo no encontrado")
-        Vehiculos(patente, marca, modelo, tipoVehiculo, folioPEmergencia)
+        Vehiculos(idVehiculo, patente, marca, modelo, tipoVehiculo, folioPEmergencia)
     }
 
 
@@ -607,22 +671,25 @@ class DAOFacadeImpl : DAOFacade {
         direccionEmergencia: String,
         folioPEmergencia: Int
     ): Emergencias = transaction {
-        // Insertar la nueva emergencia en la base de datos
         val insertStatement = Emergencia.insert {
-            it[Emergencia.claveEmergencia] = claveEmergencia
-            it[Emergencia.cuadrante] = cuadrante
-            it[Emergencia.direccionEmergencia] = direccionEmergencia
-            it[Emergencia.folioPEmergencia] = folioPEmergencia
+            it[this.claveEmergencia] = claveEmergencia
+            it[this.cuadrante] = cuadrante
+            it[this.direccionEmergencia] = direccionEmergencia
+            it[this.folioPEmergencia] = folioPEmergencia
         }
 
-        // Crear el objeto Emergencias con los valores insertados
+        val idEmergencia = insertStatement.resultedValues?.get(0)?.get(Emergencia.idEmergencia)
+            ?: throw IllegalStateException("No se pudo obtener el ID generado")
+
         Emergencias(
-            claveEmergencia = insertStatement[Emergencia.claveEmergencia],
-            cuadrante = insertStatement[Emergencia.cuadrante],
-            direccionEmergencia = insertStatement[Emergencia.direccionEmergencia],
-            folioPEmergencia = insertStatement[Emergencia.folioPEmergencia]
+            idEmergencia = idEmergencia,
+            claveEmergencia = claveEmergencia,
+            cuadrante = cuadrante,
+            direccionEmergencia = direccionEmergencia,
+            folioPEmergencia = folioPEmergencia
         )
     }
+
 
     override suspend fun deleteEmergencia(idEmergencia: Int): Boolean = transaction {
         val rowsDeleted = Emergencia.deleteWhere { Emergencia.idEmergencia eq idEmergencia }
@@ -650,7 +717,7 @@ class DAOFacadeImpl : DAOFacade {
         }
 
         // Retornar el objeto actualizado
-        Emergencias(claveEmergencia, cuadrante, direccionEmergencia, folioPEmergencia)
+        Emergencias(idEmergencia, claveEmergencia, cuadrante, direccionEmergencia, folioPEmergencia)
     }
 
 
@@ -776,29 +843,31 @@ class DAOFacadeImpl : DAOFacade {
         observaciones: String,
     ): Partes_asistencia = transaction {
         val insertStatement = Parte_asistencia.insert {
-            it[Parte_asistencia.tipoLlamado] = tipoLlamado
-            it[Parte_asistencia.aCargoDelCuerpo] = aCargoDelCuerpo
-            it[Parte_asistencia.aCargoDeLaCompania] = aCargoDeLaCompania
-            it[Parte_asistencia.fechaAsistencia] = fechaAsistencia
-            it[Parte_asistencia.horaInicio] = horaInicio
-            it[Parte_asistencia.horaFin] = horaFin
-            it[Parte_asistencia.direccionAsistencia] = direccionAsistencia
-            it[Parte_asistencia.totalAsistencia] = totalAsistencia
-            it[Parte_asistencia.observaciones] = observaciones
+            it[this.tipoLlamado] = tipoLlamado
+            it[this.aCargoDelCuerpo] = aCargoDelCuerpo
+            it[this.aCargoDeLaCompania] = aCargoDeLaCompania
+            it[this.fechaAsistencia] = fechaAsistencia
+            it[this.horaInicio] = horaInicio
+            it[this.horaFin] = horaFin
+            it[this.direccionAsistencia] = direccionAsistencia
+            it[this.totalAsistencia] = totalAsistencia
+            it[this.observaciones] = observaciones
         }
+
         val folioPAsistencia = insertStatement.resultedValues?.get(0)?.get(Parte_asistencia.folioPAsistencia)
             ?: throw IllegalStateException("No se pudo obtener el folio generado")
 
         Partes_asistencia(
-            tipoLlamado,
-            aCargoDelCuerpo,
-            aCargoDeLaCompania,
-            fechaAsistencia,
-            horaInicio,
-            horaFin,
-            direccionAsistencia,
-            totalAsistencia,
-            observaciones,
+            folioPAsistencia = folioPAsistencia,
+            tipoLlamado = tipoLlamado,
+            aCargoDelCuerpo = aCargoDelCuerpo,
+            aCargoDeLaCompania = aCargoDeLaCompania,
+            fechaAsistencia = fechaAsistencia,
+            horaInicio = horaInicio,
+            horaFin = horaFin,
+            direccionAsistencia = direccionAsistencia,
+            totalAsistencia = totalAsistencia,
+            observaciones = observaciones,
         )
     }
 
@@ -837,7 +906,7 @@ class DAOFacadeImpl : DAOFacade {
             }
         }
         if (rowsUpdated == 0) throw IllegalArgumentException("ParteAsistencia con folio $folioPAsistencia no encontrado")
-        return Partes_asistencia( tipoLlamado, aCargoDelCuerpo, aCargoDeLaCompania, fechaAsistencia, horaInicio, horaFin, direccionAsistencia, totalAsistencia, observaciones)
+        return Partes_asistencia(folioPAsistencia, tipoLlamado, aCargoDelCuerpo, aCargoDeLaCompania, fechaAsistencia, horaInicio, horaFin, direccionAsistencia, totalAsistencia, observaciones)
     }
 
     // MaterialP implementation
@@ -865,14 +934,25 @@ class DAOFacadeImpl : DAOFacade {
         nombreMaP: String,
         folioPEmergencia: Int?
     ): MaterialesP = transaction {
-        MaterialP.insert {
+        val insertStatement = MaterialP.insert {
             it[this.llamarEmpresaQuimica] = llamarEmpresaQuimica
             it[this.clasificacion] = clasificacion
             it[this.nombreMaP] = nombreMaP
             it[this.folioPEmergencia] = folioPEmergencia
         }
-        MaterialesP(llamarEmpresaQuimica, clasificacion, nombreMaP, folioPEmergencia)
+
+        val idMaterialP = insertStatement.resultedValues?.get(0)?.get(MaterialP.idMaterialP)
+            ?: throw IllegalStateException("No se pudo obtener el id generado")
+
+        MaterialesP(
+            idMaterialP = idMaterialP,
+            llamarEmpresaQuimica = llamarEmpresaQuimica,
+            clasificacion = clasificacion,
+            nombreMaP = nombreMaP,
+            folioPEmergencia = folioPEmergencia
+        )
     }
+
 
     override suspend fun deleteMaterialP(idMaterialP: Int): Boolean = transaction {
         MaterialP.deleteWhere { MaterialP.idMaterialP eq idMaterialP } > 0
@@ -892,7 +972,7 @@ class DAOFacadeImpl : DAOFacade {
             it[this.folioPEmergencia] = folioPEmergencia
         }
         if (rowsUpdated == 0) throw IllegalArgumentException("Material peligroso con ID $idMaterialP no encontrado")
-        MaterialesP(llamarEmpresaQuimica, clasificacion, nombreMaP, folioPEmergencia)
+        MaterialesP(idMaterialP, llamarEmpresaQuimica, clasificacion, nombreMaP, folioPEmergencia)
     }
 
 
@@ -915,22 +995,23 @@ class DAOFacadeImpl : DAOFacade {
 
     override suspend fun createMovil(
         nomenclatura: String,
-        especialidad: String,
+        especialidad: String
     ): Moviles = transaction {
         val insertStatement = Movil.insert {
-            it[Movil.nomenclatura] = nomenclatura
-            it[Movil.especialidad] = especialidad
+            it[this.nomenclatura] = nomenclatura
+            it[this.especialidad] = especialidad
         }
-        // Obtén el ID generado automáticamente (si existe)
+
         val idMovil = insertStatement.resultedValues?.get(0)?.get(Movil.idMovil)
             ?: throw IllegalStateException("No se pudo obtener el ID del móvil generado")
 
         Moviles(
-            nomenclatura,
-            especialidad,
-
+            idMovil = idMovil,
+            nomenclatura = nomenclatura,
+            especialidad = especialidad
         )
     }
+
 
 
     override suspend fun deleteMovil(idMovil: Int): Boolean = dbQuery {
@@ -949,7 +1030,7 @@ class DAOFacadeImpl : DAOFacade {
             }
         }
         if (rowsUpdated == 0) throw IllegalArgumentException("Movil con id $idMovil no encontrado")
-        return Moviles( nomenclatura, especialidad)
+        return Moviles(idMovil, nomenclatura, especialidad)
     }
 
     // ParteEmergenciaVoluntario implementation
@@ -957,11 +1038,12 @@ class DAOFacadeImpl : DAOFacade {
         folioPEmergencia = row[ParteEmergenciaVoluntario.folioPEmergencia],
         idVoluntario = row[ParteEmergenciaVoluntario.idVoluntario]
     )
-    override suspend fun allParteEmergenciaVoluntarios(): List<PartesEmergenciaVoluntarios> = dbQuery {
+
+    override suspend fun allParteEmergenciaVoluntarios(): List<PartesEmergenciaVoluntarios> = transaction {
         ParteEmergenciaVoluntario.selectAll().map(::resultToParteEmergenciaVoluntario)
     }
 
-    override suspend fun getParteEmergenciaVoluntario(idParteVoluntario: Int): PartesEmergenciaVoluntarios? = dbQuery {
+    override suspend fun getParteEmergenciaVoluntario(idParteVoluntario: Int): PartesEmergenciaVoluntarios? = transaction {
         ParteEmergenciaVoluntario.select { ParteEmergenciaVoluntario.idParteVoluntario eq idParteVoluntario }
             .mapNotNull(::resultToParteEmergenciaVoluntario)
             .singleOrNull()
@@ -970,34 +1052,38 @@ class DAOFacadeImpl : DAOFacade {
     override suspend fun createParteEmergenciaVoluntario(
         folioPEmergencia: Int,
         idVoluntario: Int
-    ): PartesEmergenciaVoluntarios {
-        dbQuery {
-            ParteEmergenciaVoluntario.insert {
-                it[ParteEmergenciaVoluntario.folioPEmergencia] = folioPEmergencia
-                it[ParteEmergenciaVoluntario.idVoluntario] = idVoluntario
-            }
+    ): PartesEmergenciaVoluntarios = transaction {
+        val insertStatement = ParteEmergenciaVoluntario.insert {
+            it[this.folioPEmergencia] = folioPEmergencia
+            it[this.idVoluntario] = idVoluntario
         }
-        return PartesEmergenciaVoluntarios( folioPEmergencia, idVoluntario)
+
+        val idParteVoluntario = insertStatement.resultedValues?.get(0)?.get(ParteEmergenciaVoluntario.idParteVoluntario)
+            ?: throw IllegalStateException("No se pudo obtener el ID del parte emergencia voluntario generado")
+
+        PartesEmergenciaVoluntarios(
+            idParteVoluntario = idParteVoluntario,
+            folioPEmergencia = folioPEmergencia,
+            idVoluntario = idVoluntario
+        )
     }
 
-    override suspend fun deleteParteEmergenciaVoluntario(idParteVoluntario: Int): Boolean = dbQuery {
-        ParteEmergenciaVoluntario.deleteWhere { ParteEmergenciaVoluntario.idParteVoluntario eq idParteVoluntario } > 0
 
+    override suspend fun deleteParteEmergenciaVoluntario(idParteVoluntario: Int): Boolean = transaction {
+        ParteEmergenciaVoluntario.deleteWhere { ParteEmergenciaVoluntario.idParteVoluntario eq idParteVoluntario } > 0
     }
 
     override suspend fun updateParteEmergenciaVoluntario(
         idParteVoluntario: Int,
         folioPEmergencia: Int,
         idVoluntario: Int
-    ): PartesEmergenciaVoluntarios {
-        val rowsUpdated = dbQuery {
-            ParteEmergenciaVoluntario.update({ ParteEmergenciaVoluntario.idParteVoluntario eq idParteVoluntario }) {
-                it[ParteEmergenciaVoluntario.folioPEmergencia] = folioPEmergencia
-                it[ParteEmergenciaVoluntario.idVoluntario] = idVoluntario
-            }
+    ): PartesEmergenciaVoluntarios = transaction {
+        val rowsUpdated = ParteEmergenciaVoluntario.update({ ParteEmergenciaVoluntario.idParteVoluntario eq idParteVoluntario }) {
+            it[this.folioPEmergencia] = folioPEmergencia
+            it[this.idVoluntario] = idVoluntario
         }
         if (rowsUpdated == 0) throw IllegalArgumentException("ParteEmergenciaVoluntario con id $idParteVoluntario no encontrado")
-        return PartesEmergenciaVoluntarios( folioPEmergencia, idVoluntario)
+        PartesEmergenciaVoluntarios(idParteVoluntario, folioPEmergencia, idVoluntario)
     }
 
     // ParteAsistenciaVoluntario implementation
@@ -1006,11 +1092,12 @@ class DAOFacadeImpl : DAOFacade {
         folioPAsistencia = row[ParteAsistenciaVoluntario.folioPAsistencia],
         idVoluntario = row[ParteAsistenciaVoluntario.idVoluntario]
     )
-    override suspend fun allParteAsistenciaVoluntarios(): List<PartesAsistenciaVoluntarios> = dbQuery {
+
+    override suspend fun allParteAsistenciaVoluntarios(): List<PartesAsistenciaVoluntarios> = transaction {
         ParteAsistenciaVoluntario.selectAll().map(::resultToParteAsistenciaVoluntario)
     }
 
-    override suspend fun getParteAsistenciaVoluntario(idParteAsistenciaVoluntario: Int): PartesAsistenciaVoluntarios? = dbQuery {
+    override suspend fun getParteAsistenciaVoluntario(idParteAsistenciaVoluntario: Int): PartesAsistenciaVoluntarios? = transaction {
         ParteAsistenciaVoluntario.select { ParteAsistenciaVoluntario.idParteAsistenciaVoluntario eq idParteAsistenciaVoluntario }
             .mapNotNull(::resultToParteAsistenciaVoluntario)
             .singleOrNull()
@@ -1019,34 +1106,38 @@ class DAOFacadeImpl : DAOFacade {
     override suspend fun createParteAsistenciaVoluntario(
         folioPAsistencia: Int,
         idVoluntario: Int
-    ): PartesAsistenciaVoluntarios {
-        dbQuery {
-            ParteAsistenciaVoluntario.insert {
-                it[ParteAsistenciaVoluntario.folioPAsistencia] = folioPAsistencia
-                it[ParteAsistenciaVoluntario.idVoluntario] = idVoluntario
-            }
+    ): PartesAsistenciaVoluntarios = transaction {
+        val insertStatement = ParteAsistenciaVoluntario.insert {
+            it[this.folioPAsistencia] = folioPAsistencia
+            it[this.idVoluntario] = idVoluntario
         }
-        return PartesAsistenciaVoluntarios( folioPAsistencia, idVoluntario)
+
+        val idParteAsistenciaVoluntario = insertStatement.resultedValues?.get(0)?.get(ParteAsistenciaVoluntario.idParteAsistenciaVoluntario)
+            ?: throw IllegalStateException("No se pudo obtener el ID del parte asistencia voluntario generado")
+
+        PartesAsistenciaVoluntarios(
+            idParteAsistenciaVoluntario = idParteAsistenciaVoluntario,
+            folioPAsistencia = folioPAsistencia,
+            idVoluntario = idVoluntario
+        )
     }
 
-    override suspend fun deleteParteAsistenciaVoluntario(idParteAsistenciaVoluntario: Int): Boolean = dbQuery {
-        ParteAsistenciaVoluntario.deleteWhere { ParteAsistenciaVoluntario.idParteAsistenciaVoluntario eq idParteAsistenciaVoluntario } > 0
 
+    override suspend fun deleteParteAsistenciaVoluntario(idParteAsistenciaVoluntario: Int): Boolean = transaction {
+        ParteAsistenciaVoluntario.deleteWhere { ParteAsistenciaVoluntario.idParteAsistenciaVoluntario eq idParteAsistenciaVoluntario } > 0
     }
 
     override suspend fun updateParteAsistenciaVoluntario(
         idParteAsistenciaVoluntario: Int,
         folioPAsistencia: Int,
         idVoluntario: Int
-    ): PartesAsistenciaVoluntarios {
-        val rowsUpdated = dbQuery {
-            ParteAsistenciaVoluntario.update({ ParteAsistenciaVoluntario.idParteAsistenciaVoluntario eq idParteAsistenciaVoluntario }) {
-                it[ParteAsistenciaVoluntario.folioPAsistencia] = folioPAsistencia
-                it[ParteAsistenciaVoluntario.idVoluntario] = idVoluntario
-            }
+    ): PartesAsistenciaVoluntarios = transaction {
+        val rowsUpdated = ParteAsistenciaVoluntario.update({ ParteAsistenciaVoluntario.idParteAsistenciaVoluntario eq idParteAsistenciaVoluntario }) {
+            it[this.folioPAsistencia] = folioPAsistencia
+            it[this.idVoluntario] = idVoluntario
         }
         if (rowsUpdated == 0) throw IllegalArgumentException("ParteAsistenciaVoluntario con id $idParteAsistenciaVoluntario no encontrado")
-        return PartesAsistenciaVoluntarios( folioPAsistencia, idVoluntario)
+        PartesAsistenciaVoluntarios(idParteAsistenciaVoluntario, folioPAsistencia, idVoluntario)
     }
 
     //ParteEmergenciaMovil implementation
@@ -1056,11 +1147,11 @@ class DAOFacadeImpl : DAOFacade {
         idMovil = row[ParteEmergenciaMovil.idMovil]
     )
 
-    override suspend fun allParteEmergenciaMovil(): List<PartesEmergenciaMoviles> = dbQuery {
+    override suspend fun allParteEmergenciaMovil(): List<PartesEmergenciaMoviles> = transaction {
         ParteEmergenciaMovil.selectAll().map(::resultToParteEmergenciaMovil)
     }
 
-    override suspend fun getParteEmergenciaMovil(idParteEmergenciaMovil: Int): PartesEmergenciaMoviles? = dbQuery {
+    override suspend fun getParteEmergenciaMovil(idParteEmergenciaMovil: Int): PartesEmergenciaMoviles? = transaction {
         ParteEmergenciaMovil.select { ParteEmergenciaMovil.idParteEmergenciaMovil eq idParteEmergenciaMovil }
             .mapNotNull(::resultToParteEmergenciaMovil)
             .singleOrNull()
@@ -1069,17 +1160,24 @@ class DAOFacadeImpl : DAOFacade {
     override suspend fun createParteEmergenciaMovil(
         folioPEmergencia: Int,
         idMovil: Int
-    ): PartesEmergenciaMoviles {
-        val id = dbQuery {
-            ParteEmergenciaMovil.insert{
-                it[ParteEmergenciaMovil.folioPEmergencia] = folioPEmergencia
-                it[ParteEmergenciaMovil.idMovil] = idMovil
-            }
+    ): PartesEmergenciaMoviles = transaction {
+        val insertStatement = ParteEmergenciaMovil.insert {
+            it[this.folioPEmergencia] = folioPEmergencia
+            it[this.idMovil] = idMovil
         }
-        return PartesEmergenciaMoviles(folioPEmergencia, idMovil)
+
+        val idParteEmergenciaMovil = insertStatement.resultedValues?.get(0)?.get(ParteEmergenciaMovil.idParteEmergenciaMovil)
+            ?: throw IllegalStateException("No se pudo obtener el ID del parte emergencia móvil generado")
+
+        PartesEmergenciaMoviles(
+            idParteEmergenciaMovil = idParteEmergenciaMovil,
+            folioPEmergencia = folioPEmergencia,
+            idMovil = idMovil
+        )
     }
 
-    override suspend fun deleteParteEmergenciaMovil(idParteEmergenciaMovil: Int): Boolean = dbQuery {
+
+    override suspend fun deleteParteEmergenciaMovil(idParteEmergenciaMovil: Int): Boolean = transaction {
         ParteEmergenciaMovil.deleteWhere { ParteEmergenciaMovil.idParteEmergenciaMovil eq idParteEmergenciaMovil } > 0
     }
 
@@ -1087,15 +1185,13 @@ class DAOFacadeImpl : DAOFacade {
         idParteEmergenciaMovil: Int,
         folioPEmergencia: Int,
         idMovil: Int
-    ): PartesEmergenciaMoviles {
-        val rowsUpdated = dbQuery {
-            ParteEmergenciaMovil.update({ ParteEmergenciaMovil.idParteEmergenciaMovil eq idParteEmergenciaMovil }) {
-                it[ParteEmergenciaMovil.folioPEmergencia] = folioPEmergencia
-                it[ParteEmergenciaMovil.idMovil] = idMovil
-            }
+    ): PartesEmergenciaMoviles = transaction {
+        val rowsUpdated = ParteEmergenciaMovil.update({ ParteEmergenciaMovil.idParteEmergenciaMovil eq idParteEmergenciaMovil }) {
+            it[this.folioPEmergencia] = folioPEmergencia
+            it[this.idMovil] = idMovil
         }
         if (rowsUpdated == 0) throw IllegalArgumentException("ParteEmergenciaMovil con id $idParteEmergenciaMovil no encontrado")
-        return PartesEmergenciaMoviles(folioPEmergencia, idMovil)
+        PartesEmergenciaMoviles(idParteEmergenciaMovil, folioPEmergencia, idMovil)
     }
 
     //ParteAsistenciaMovil implementation
@@ -1105,11 +1201,11 @@ class DAOFacadeImpl : DAOFacade {
         idMovil = row[ParteAsistenciaMovil.idMovil]
     )
 
-    override suspend fun allParteAsistenciaMovil(): List<PartesAsistenciaMoviles> = dbQuery {
+    override suspend fun allParteAsistenciaMovil(): List<PartesAsistenciaMoviles> = transaction {
         ParteAsistenciaMovil.selectAll().map(::resultToParteAsistenciaMovil)
     }
 
-    override suspend fun getParteAsistenciaMovil(idParteAsistenciaMovil: Int): PartesAsistenciaMoviles? = dbQuery {
+    override suspend fun getParteAsistenciaMovil(idParteAsistenciaMovil: Int): PartesAsistenciaMoviles? = transaction {
         ParteAsistenciaMovil.select { ParteAsistenciaMovil.idParteAsistenciaMovil eq idParteAsistenciaMovil }
             .mapNotNull(::resultToParteAsistenciaMovil)
             .singleOrNull()
@@ -1118,17 +1214,24 @@ class DAOFacadeImpl : DAOFacade {
     override suspend fun createParteAsistenciaMovil(
         folioPAsistencia: Int,
         idMovil: Int
-    ): PartesAsistenciaMoviles {
-        val id = dbQuery {
-            ParteAsistenciaMovil.insert {
-                it[ParteAsistenciaMovil.folioPAsistencia] = folioPAsistencia
-                it[ParteAsistenciaMovil.idMovil] = idMovil
-            }
+    ): PartesAsistenciaMoviles = transaction {
+        val insertStatement = ParteAsistenciaMovil.insert {
+            it[this.folioPAsistencia] = folioPAsistencia
+            it[this.idMovil] = idMovil
         }
-        return PartesAsistenciaMoviles(folioPAsistencia, idMovil)
+
+        val idParteAsistenciaMovil = insertStatement.resultedValues?.get(0)?.get(ParteAsistenciaMovil.idParteAsistenciaMovil)
+            ?: throw IllegalStateException("No se pudo obtener el ID del parte asistencia móvil generado")
+
+        PartesAsistenciaMoviles(
+            idParteAsistenciaMovil = idParteAsistenciaMovil,
+            folioPAsistencia = folioPAsistencia,
+            idMovil = idMovil
+        )
     }
 
-    override suspend fun deleteParteAsistenciaMovil(idParteAsistenciaMovil: Int): Boolean = dbQuery {
+
+    override suspend fun deleteParteAsistenciaMovil(idParteAsistenciaMovil: Int): Boolean = transaction {
         ParteAsistenciaMovil.deleteWhere { ParteAsistenciaMovil.idParteAsistenciaMovil eq idParteAsistenciaMovil } > 0
     }
 
@@ -1136,15 +1239,13 @@ class DAOFacadeImpl : DAOFacade {
         idParteAsistenciaMovil: Int,
         folioPAsistencia: Int,
         idMovil: Int
-    ): PartesAsistenciaMoviles {
-        val rowsUpdated = dbQuery {
-            ParteAsistenciaMovil.update({ ParteAsistenciaMovil.idParteAsistenciaMovil eq idParteAsistenciaMovil }) {
-                it[ParteAsistenciaMovil.folioPAsistencia] = folioPAsistencia
-                it[ParteAsistenciaMovil.idMovil] = idMovil
-            }
+    ): PartesAsistenciaMoviles = transaction {
+        val rowsUpdated = ParteAsistenciaMovil.update({ ParteAsistenciaMovil.idParteAsistenciaMovil eq idParteAsistenciaMovil }) {
+            it[this.folioPAsistencia] = folioPAsistencia
+            it[this.idMovil] = idMovil
         }
         if (rowsUpdated == 0) throw IllegalArgumentException("ParteAsistenciaMovil con id $idParteAsistenciaMovil no encontrado")
-        return PartesAsistenciaMoviles( folioPAsistencia, idMovil)
+        PartesAsistenciaMoviles(idParteAsistenciaMovil, folioPAsistencia, idMovil)
     }
 
 

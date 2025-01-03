@@ -5,6 +5,7 @@ import org.jetbrains.exposed.sql.Table
 
 @Serializable
 data class Victimas(
+    val idVictima: Int? = null,
     val rutVictima: String,
     val nombreVictima: String,
     val edadVictima: Int,

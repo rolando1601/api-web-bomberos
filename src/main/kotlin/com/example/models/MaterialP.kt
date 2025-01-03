@@ -6,6 +6,7 @@ import org.jetbrains.exposed.sql.Table
 @Serializable
 data class MaterialesP(
 
+    val idMaterialP: Int? = null,
     val llamarEmpresaQuimica: Boolean,
     val clasificacion: String,
     val nombreMaP: String,

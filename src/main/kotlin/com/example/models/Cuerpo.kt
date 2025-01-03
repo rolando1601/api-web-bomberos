@@ -5,7 +5,7 @@ import org.jetbrains.exposed.sql.Table
 
 @Serializable
 data class Cuerpos(
-
+    val idCuerpo: Int? = null,
     val nombreCuerpo: String,
     val provincia: String,
     val region: String,

@@ -5,7 +5,7 @@
 
     @Serializable
     data class Companias(
-
+        val idCompania: Int? = null,
         val nombreCia: String,
         val direccionCia: String,
         val especialidad: String,

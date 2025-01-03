@@ -7,7 +7,7 @@ import org.jetbrains.exposed.sql.kotlin.datetime.time
 
 @Serializable
 data class Instituciones(
-
+    val idInstitucion: Int? = null,
     val nombreInstitucion: String,
     val tipoInstitucion: String,
     val nombrePersonaCargo: String,

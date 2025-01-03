@@ -1,8 +1,11 @@
 package com.example.models
 
+import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.Table
 
+@Serializable
 data class PartesEmergenciaMoviles(
+    val idParteEmergenciaMovil: Int? = null,
     val folioPEmergencia: Int,
     val idMovil: Int
 )

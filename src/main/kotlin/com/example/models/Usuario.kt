@@ -12,7 +12,7 @@ import org.jetbrains.exposed.sql.Table
 
 @Serializable
 data class Usuarios(
-
+    val idUsuario: Int? = null,
     val nombreUsuario: String,
     val contrasena: String,
     val idRol: Int

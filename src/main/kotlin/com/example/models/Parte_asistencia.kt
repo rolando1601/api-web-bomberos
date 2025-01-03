@@ -9,6 +9,7 @@ import org.jetbrains.exposed.sql.kotlin.datetime.time
 
 @Serializable
 data class Partes_asistencia(
+    val folioPAsistencia: Int? = null,
     val tipoLlamado: String,
     val aCargoDelCuerpo: String,
     val aCargoDeLaCompania: String,

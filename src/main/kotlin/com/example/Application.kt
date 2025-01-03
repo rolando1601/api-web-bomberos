@@ -51,5 +51,9 @@ fun Application.module() {
         companiaRoutes(dao)
         usuarioRoutes(dao)
         emergenciaRoutes(dao)
+        parteAsistenciaMovilRoutes(dao)
+        parteEmergenciaMovilRoutes(dao)
+        parteEmergenciaVoluntarioRoutes(dao)
+        parteAsistenciaVoluntarioRoutes(dao)
     }
 }

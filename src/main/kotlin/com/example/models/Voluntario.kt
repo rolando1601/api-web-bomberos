@@ -7,7 +7,7 @@ import org.jetbrains.exposed.sql.kotlin.datetime.date
 
 @Serializable
 data class Voluntarios(
-
+    val idVoluntario: Int? = null,
     val nombreVol: String,
     val fechaNac: LocalDate,
     val direccion: String,

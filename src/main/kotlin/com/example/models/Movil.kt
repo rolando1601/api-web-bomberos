@@ -5,6 +5,7 @@ import org.jetbrains.exposed.sql.Table
 
 @Serializable
 data class Moviles(
+    val idMovil: Int? = null,
     val nomenclatura: String,
     val especialidad: String,
 )

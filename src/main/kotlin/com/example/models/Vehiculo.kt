@@ -5,7 +5,7 @@ import org.jetbrains.exposed.sql.Table
 
 @Serializable
 data class Vehiculos(
-
+    val idVehiculo: Int? = null,
     val patente: String,
     val marca: String,
     val modelo: String,

@@ -7,7 +7,7 @@ import org.jetbrains.exposed.sql.Table
 
 @Serializable
 data class Emergencias(
-
+    val idEmergencia: Int? = null,
     val claveEmergencia: String,
     val cuadrante: String,
     val direccionEmergencia: String,

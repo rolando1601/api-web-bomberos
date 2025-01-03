@@ -5,7 +5,7 @@ import org.jetbrains.exposed.sql.Table
 
 @Serializable
 data class Inmuebles(
-
+    val idInmueble: Int? = null,
     val direccion: String,
     val tipoInmueble: String,
     val estadoInmueble: String,
