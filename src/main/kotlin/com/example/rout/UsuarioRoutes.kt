@@ -7,6 +7,9 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import com.example.models.Usuarios
 import com.example.dao.DAOFacadeImpl
+import kotlinx.serialization.Serializable
+import com.example.models.LoginRequest
+import com.example.models.LoginResponse
 
 fun Route.usuarioRoutes(dao: DAOFacadeImpl) {
     route("/usuario") {
@@ -118,5 +121,37 @@ fun Route.usuarioRoutes(dao: DAOFacadeImpl) {
                 call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al actualizar usuario: ${e.message}"))
             }
         }
+
+        post("/login") {
+            try {
+                val loginRequest = call.receive<LoginRequest>()
+                val (nombreUsuario, contrasena) = loginRequest
+
+
+                if (nombreUsuario.isBlank() || contrasena.isBlank()) {
+                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Nombre de usuario o contraseña no pueden estar vacíos"))
+                    return@post
+                }
+
+                val usuario = dao.loginUsuario(nombreUsuario, contrasena)
+
+                if (usuario != null) {
+                    val usuarioRespuesta = usuario.copy(contrasena = "") // Excluir la contraseña de la respuesta
+                    val response = LoginResponse(
+                        message = "Login exitoso",
+                        usuario = usuarioRespuesta
+                    )
+                    call.respond(HttpStatusCode.OK, response)
+                } else {
+                    call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Credenciales incorrectas"))
+                }
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al intentar iniciar sesión: ${e.message}"))
+            }
+        }
+
+
+
+
     }
 }

@@ -1,0 +1,18 @@
+openapi: 3.0.1
+info:
+  title: API de Bomberos
+  version: 1.0.0
+servers:
+- url: /
+paths:
+  /ruta-ejemplo:
+    get:
+      responses:
+        "200":
+          description: Respuesta exitosa
+      summary: Obtener ejemplo
+      x-accepts:
+      - application/json
+components:
+  schemas: {}
+

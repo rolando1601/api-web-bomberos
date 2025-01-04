@@ -303,6 +303,15 @@ class DAOFacadeImpl : DAOFacade {
         return Usuarios(idUsuario, nombreUsuario, contrasena, idRol)
     }
 
+    override suspend fun loginUsuario(nombreUsuario: String, contrasena: String): Usuarios? {
+        return transaction {
+            Usuario.select {
+                (Usuario.nombreUsuario eq nombreUsuario) and (Usuario.contrasena eq contrasena)
+            }.mapNotNull(::resultToUsuario).singleOrNull()
+        }
+    }
+
+
     // Voluntario implementation
 
     private fun resultToVoluntario(row: ResultRow) = Voluntarios(

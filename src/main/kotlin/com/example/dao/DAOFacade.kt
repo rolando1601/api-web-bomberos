@@ -34,6 +34,7 @@ interface DAOFacade {
     suspend fun createUsuario( nombreUsuario: String, contrasena: String, idRol: Int): Usuarios
     suspend fun deleteUsuario(idUsuario: Int): Boolean
     suspend fun updateUsuario(idUsuario: Int, nombreUsuario: String, contrasena: String, idRol: Int): Usuarios
+    suspend fun loginUsuario(nombreUsuario: String, contrasena: String): Usuarios?
 
     // Voluntario
     suspend fun allVoluntarios(): List<Voluntarios>
