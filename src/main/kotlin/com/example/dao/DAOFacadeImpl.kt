@@ -740,8 +740,11 @@ class DAOFacadeImpl : DAOFacade {
         fechaEmergencia = row[Parte_emergencia.fechaEmergencia],
         preInforme = row[Parte_emergencia.preInforme],
         oficial = row[Parte_emergencia.oficial],
+        llamarEmpresaQuimica = row[Parte_emergencia.llamarEmpresaQuimica],
+        descripcionMaterialP = row[Parte_emergencia.descripcionMaterialP],
         folioPAsistencia = row[Parte_emergencia.folioPAsistencia]
     )
+
 
     override suspend fun allParteEmergencias(): List<Partes_emergencia> = dbQuery {
         Parte_emergencia.selectAll().map(::resultToParteEmergencia)
@@ -760,6 +763,8 @@ class DAOFacadeImpl : DAOFacade {
         fechaEmergencia: LocalDate,
         preInforme: String,
         oficial: String,
+        llamarEmpresaQuimica: Boolean?,
+        descripcionMaterialP: String,
         folioPAsistencia: Int?
     ): Partes_emergencia = transaction {
         val insertStatement = Parte_emergencia.insert {
@@ -769,6 +774,8 @@ class DAOFacadeImpl : DAOFacade {
             it[Parte_emergencia.fechaEmergencia] = fechaEmergencia
             it[Parte_emergencia.preInforme] = preInforme
             it[Parte_emergencia.oficial] = oficial
+            it[Parte_emergencia.llamarEmpresaQuimica] = llamarEmpresaQuimica
+            it[Parte_emergencia.descripcionMaterialP] = descripcionMaterialP
             it[Parte_emergencia.folioPAsistencia] = folioPAsistencia
         }
 
@@ -783,6 +790,8 @@ class DAOFacadeImpl : DAOFacade {
             fechaEmergencia = fechaEmergencia,
             preInforme = preInforme,
             oficial = oficial,
+            llamarEmpresaQuimica = llamarEmpresaQuimica,
+            descripcionMaterialP = descripcionMaterialP,
             folioPAsistencia = folioPAsistencia
         )
     }
@@ -799,6 +808,8 @@ class DAOFacadeImpl : DAOFacade {
         fechaEmergencia: LocalDate,
         preInforme: String,
         oficial: String,
+        llamarEmpresaQuimica: Boolean?,
+        descripcionMaterialP: String,
         folioPAsistencia: Int?
     ): Partes_emergencia {
         val rowsUpdated = dbQuery {
@@ -809,16 +820,30 @@ class DAOFacadeImpl : DAOFacade {
                 it[Parte_emergencia.fechaEmergencia] = fechaEmergencia
                 it[Parte_emergencia.preInforme] = preInforme
                 it[Parte_emergencia.oficial] = oficial
+                it[Parte_emergencia.llamarEmpresaQuimica] = llamarEmpresaQuimica
+                it[Parte_emergencia.descripcionMaterialP] = descripcionMaterialP
                 it[Parte_emergencia.folioPAsistencia] = folioPAsistencia
             }
         }
         if (rowsUpdated == 0) throw IllegalArgumentException("ParteEmergencia con folio $folioPEmergencia no encontrado")
-        return Partes_emergencia(folioPEmergencia, tipoEmergencia, horaInicio, horaFin, fechaEmergencia, preInforme, oficial, folioPAsistencia)
+        return Partes_emergencia(
+            folioPEmergencia,
+            tipoEmergencia,
+            horaInicio,
+            horaFin,
+            fechaEmergencia,
+            preInforme,
+            oficial,
+            llamarEmpresaQuimica,
+            descripcionMaterialP,
+            folioPAsistencia
+        )
     }
 
     //parte_asistencia implementation
 
     private fun resultToParteAsistencia(row: ResultRow) = Partes_asistencia(
+        folioPAsistencia = row[Parte_asistencia.folioPAsistencia],
         tipoLlamado = row[Parte_asistencia.tipoLlamado],
         aCargoDelCuerpo = row[Parte_asistencia.aCargoDelCuerpo],
         aCargoDeLaCompania = row[Parte_asistencia.aCargoDeLaCompania],
@@ -921,10 +946,8 @@ class DAOFacadeImpl : DAOFacade {
     // MaterialP implementation
 
     private fun resultToMaterialP(row: ResultRow) = MaterialesP(
-        llamarEmpresaQuimica = row[MaterialP.llamarEmpresaQuimica],
+        idMaterialP = row[MaterialP.idMaterialP],
         clasificacion = row[MaterialP.clasificacion],
-        nombreMaP = row[MaterialP.nombreMaP],
-        folioPEmergencia = row[MaterialP.folioPEmergencia]
     )
 
     override suspend fun allMaterialesP(): List<MaterialesP> = transaction {
@@ -938,16 +961,10 @@ class DAOFacadeImpl : DAOFacade {
     }
 
     override suspend fun createMaterialP(
-        llamarEmpresaQuimica: Boolean,
         clasificacion: String,
-        nombreMaP: String,
-        folioPEmergencia: Int?
     ): MaterialesP = transaction {
         val insertStatement = MaterialP.insert {
-            it[this.llamarEmpresaQuimica] = llamarEmpresaQuimica
             it[this.clasificacion] = clasificacion
-            it[this.nombreMaP] = nombreMaP
-            it[this.folioPEmergencia] = folioPEmergencia
         }
 
         val idMaterialP = insertStatement.resultedValues?.get(0)?.get(MaterialP.idMaterialP)
@@ -955,10 +972,7 @@ class DAOFacadeImpl : DAOFacade {
 
         MaterialesP(
             idMaterialP = idMaterialP,
-            llamarEmpresaQuimica = llamarEmpresaQuimica,
             clasificacion = clasificacion,
-            nombreMaP = nombreMaP,
-            folioPEmergencia = folioPEmergencia
         )
     }
 
@@ -969,19 +983,13 @@ class DAOFacadeImpl : DAOFacade {
 
     override suspend fun updateMaterialP(
         idMaterialP: Int,
-        llamarEmpresaQuimica: Boolean,
         clasificacion: String,
-        nombreMaP: String,
-        folioPEmergencia: Int?
     ): MaterialesP = transaction {
         val rowsUpdated = MaterialP.update({ MaterialP.idMaterialP eq idMaterialP }) {
-            it[this.llamarEmpresaQuimica] = llamarEmpresaQuimica
             it[this.clasificacion] = clasificacion
-            it[this.nombreMaP] = nombreMaP
-            it[this.folioPEmergencia] = folioPEmergencia
         }
         if (rowsUpdated == 0) throw IllegalArgumentException("Material peligroso con ID $idMaterialP no encontrado")
-        MaterialesP(idMaterialP, llamarEmpresaQuimica, clasificacion, nombreMaP, folioPEmergencia)
+        MaterialesP(idMaterialP, clasificacion)
     }
 
 
@@ -1257,6 +1265,59 @@ class DAOFacadeImpl : DAOFacade {
         PartesAsistenciaMoviles(idParteAsistenciaMovil, folioPAsistencia, idMovil)
     }
 
+    // ParteEmergenciaMaterial implementation
+
+    private fun resultToParteEmergenciaMaterial(row: ResultRow) = PartesEmergenciaMateriales(
+        idparteemergenciamaterialp = row[ParteEmergenciaMaterial.idparteemergenciamaterialp],
+        folioPEmergencia = row[ParteEmergenciaMaterial.folioPEmergencia],
+        idMaterialP = row[ParteEmergenciaMaterial.idMaterialP]
+    )
+
+    override suspend fun allParteEmergenciaMaterial(): List<PartesEmergenciaMateriales> = transaction {
+        ParteEmergenciaMaterial.selectAll().map(::resultToParteEmergenciaMaterial)
+    }
+
+    override suspend fun getParteEmergenciaMaterial(idparteemergenciamaterialp: Int): PartesEmergenciaMateriales? = transaction {
+        ParteEmergenciaMaterial.select { ParteEmergenciaMaterial.idparteemergenciamaterialp eq idparteemergenciamaterialp }
+            .mapNotNull(::resultToParteEmergenciaMaterial)
+            .singleOrNull()
+    }
+
+    override suspend fun createParteEmergenciaMaterial(
+        folioPEmergencia: Int,
+        idMaterialP: Int
+    ): PartesEmergenciaMateriales = transaction {
+        val insertStatement = ParteEmergenciaMaterial.insert {
+            it[this.folioPEmergencia] = folioPEmergencia
+            it[this.idMaterialP] = idMaterialP
+        }
+
+        val idparteemergenciamaterialp = insertStatement.resultedValues?.get(0)?.get(ParteEmergenciaMaterial.idparteemergenciamaterialp)
+            ?: throw IllegalStateException("No se pudo obtener el ID del parte emergencia material generado")
+
+        PartesEmergenciaMateriales(
+            idparteemergenciamaterialp = idparteemergenciamaterialp,
+            folioPEmergencia = folioPEmergencia,
+            idMaterialP = idMaterialP
+        )
+    }
+
+    override suspend fun deleteParteEmergenciaMaterial(idparteemergenciamaterialp: Int): Boolean = transaction {
+        ParteEmergenciaMaterial.deleteWhere { ParteEmergenciaMaterial.idparteemergenciamaterialp eq idparteemergenciamaterialp } > 0
+    }
+
+    override suspend fun updateParteEmergenciaMaterial(
+        idparteemergenciamaterialp: Int,
+        folioPEmergencia: Int,
+        idMaterialP: Int
+    ): PartesEmergenciaMateriales = transaction {
+        val rowsUpdated = ParteEmergenciaMaterial.update({ ParteEmergenciaMaterial.idparteemergenciamaterialp eq idparteemergenciamaterialp }) {
+            it[this.folioPEmergencia] = folioPEmergencia
+            it[this.idMaterialP] = idMaterialP
+        }
+        if (rowsUpdated == 0) throw IllegalArgumentException("ParteEmergenciaMaterial con id $idparteemergenciamaterialp no encontrado")
+        PartesEmergenciaMateriales(idparteemergenciamaterialp, folioPEmergencia, idMaterialP)
+    }
 
     //Funciones extras
 

@@ -36,6 +36,8 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
                     fechaEmergencia = parteEmergencia.fechaEmergencia,
                     preInforme = parteEmergencia.preInforme,
                     oficial = parteEmergencia.oficial,
+                    llamarEmpresaQuimica = parteEmergencia.llamarEmpresaQuimica, // Nuevo atributo
+                    descripcionMaterialP = parteEmergencia.descripcionMaterialP,
                     folioPAsistencia = parteEmergencia.folioPAsistencia
                 )
                 call.respond(HttpStatusCode.Created, createdParteEmergencia) // Responder con el objeto completo
@@ -45,7 +47,7 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
         }
 
         // Obtener un parte de emergencia por folio (GET /parte-emergencia/{folioPEmergencia})
-        get("/{folioPEmergencia}") {
+        get("/buscar/{folioPEmergencia}") {
             val folioPEmergencia = call.parameters["folioPEmergencia"]?.toIntOrNull()
             if (folioPEmergencia == null) {
                 call.respond(HttpStatusCode.BadRequest, mapOf("error" to "FolioPEmergencia inválido o faltante."))
@@ -80,6 +82,8 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
                     fechaEmergencia = parteEmergencia.fechaEmergencia,
                     preInforme = parteEmergencia.preInforme,
                     oficial = parteEmergencia.oficial,
+                    llamarEmpresaQuimica = parteEmergencia.llamarEmpresaQuimica, // Nuevo atributo
+                    descripcionMaterialP = parteEmergencia.descripcionMaterialP,
                     folioPAsistencia = parteEmergencia.folioPAsistencia
                 )
                 call.respond(HttpStatusCode.OK, updatedParteEmergencia)

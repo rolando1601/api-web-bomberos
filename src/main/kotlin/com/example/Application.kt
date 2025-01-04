@@ -38,6 +38,7 @@ fun Application.module() {
 
     // Configura las rutas
     routing {
+        parteEmergenciaMaterialPRoutes(dao)
         materialPRoutes(dao)
         vehiculoRoutes(dao)
         victimaRoutes(dao)

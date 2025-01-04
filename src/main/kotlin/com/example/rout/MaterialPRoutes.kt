@@ -31,10 +31,7 @@ fun Route.materialPRoutes(dao: DAOFacadeImpl) {
             try {
                 val materialP = call.receive<MaterialesP>()
                 val createdMaterialP = dao.createMaterialP(
-                    llamarEmpresaQuimica = materialP.llamarEmpresaQuimica,
                     clasificacion = materialP.clasificacion,
-                    nombreMaP = materialP.nombreMaP,
-                    folioPEmergencia = materialP.folioPEmergencia
                 )
                 call.respond(HttpStatusCode.Created, createdMaterialP)
             } catch (e: Exception) {
@@ -72,10 +69,8 @@ fun Route.materialPRoutes(dao: DAOFacadeImpl) {
                 val materialP = call.receive<MaterialesP>()
                 val updatedMaterialP = dao.updateMaterialP(
                     idMaterialP = idMaterialP,
-                    llamarEmpresaQuimica = materialP.llamarEmpresaQuimica,
                     clasificacion = materialP.clasificacion,
-                    nombreMaP = materialP.nombreMaP,
-                    folioPEmergencia = materialP.folioPEmergencia
+
                 )
                 call.respond(HttpStatusCode.OK, updatedMaterialP)
             } catch (e: Exception) {

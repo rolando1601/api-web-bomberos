@@ -16,6 +16,8 @@ data class Partes_emergencia(
     val fechaEmergencia: LocalDate,
     val preInforme: String,
     val oficial: String,
+    val llamarEmpresaQuimica: Boolean? ,
+    val descripcionMaterialP: String,
     val folioPAsistencia: Int?
 )
 
@@ -27,6 +29,8 @@ object Parte_emergencia : Table() {
     val fechaEmergencia = date("fechaEmergencia")
     val preInforme = text("preInforme")
     val oficial = text("oficial")
+    val llamarEmpresaQuimica = bool("llamadoempresaquimica").nullable()
+    val descripcionMaterialP = text("descripcionmaterialp")
     val folioPAsistencia = integer("folioPAsistencia").references(Parte_asistencia.folioPAsistencia).nullable()
 
     override val primaryKey = PrimaryKey(folioPEmergencia)

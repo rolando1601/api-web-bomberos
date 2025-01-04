@@ -74,9 +74,9 @@ interface DAOFacade {
     // ParteEmergencia
     suspend fun allParteEmergencias(): List<Partes_emergencia>
     suspend fun getParteEmergencia(folioPEmergencia: Int): Partes_emergencia?
-    suspend fun createParteEmergencia( tipoEmergencia: String, horaInicio: LocalTime, horaFin: LocalTime, fechaEmergencia: LocalDate, preInforme: String, oficial: String, folioPAsistencia: Int?): Partes_emergencia
+    suspend fun createParteEmergencia(tipoEmergencia: String, horaInicio: LocalTime, horaFin: LocalTime, fechaEmergencia: LocalDate, preInforme: String, oficial: String, llamarEmpresaQuimica: Boolean?, descripcionMaterialP: String, folioPAsistencia: Int?): Partes_emergencia
     suspend fun deleteParteEmergencia(folioPEmergencia: Int): Boolean
-    suspend fun updateParteEmergencia(folioPEmergencia: Int, tipoEmergencia: String, horaInicio: LocalTime, horaFin: LocalTime, fechaEmergencia: LocalDate, preInforme: String, oficial: String, folioPAsistencia: Int?): Partes_emergencia
+    suspend fun updateParteEmergencia(folioPEmergencia: Int, tipoEmergencia: String,horaInicio: LocalTime, horaFin: LocalTime, fechaEmergencia: LocalDate, preInforme: String, oficial: String, llamarEmpresaQuimica: Boolean?, descripcionMaterialP: String, folioPAsistencia: Int?): Partes_emergencia
 
     // ParteAsistencia
     suspend fun allParteAsistencias(): List<Partes_asistencia>
@@ -88,9 +88,9 @@ interface DAOFacade {
     // MaterialP
     suspend fun allMaterialesP(): List<MaterialesP>
     suspend fun getMaterialP(idMaterialP: Int): MaterialesP?
-    suspend fun createMaterialP( llamarEmpresaQuimica: Boolean, clasificacion: String, nombreMaP: String, folioPEmergencia: Int?): MaterialesP
+    suspend fun createMaterialP( clasificacion: String): MaterialesP
     suspend fun deleteMaterialP(idMaterialP: Int): Boolean
-    suspend fun updateMaterialP(idMaterialP: Int, llamarEmpresaQuimica: Boolean, clasificacion: String, nombreMaP: String, folioPEmergencia: Int?): MaterialesP
+    suspend fun updateMaterialP(idMaterialP: Int, clasificacion: String ): MaterialesP
 
     // Movil
     suspend fun allMoviles(): List<Moviles>
@@ -126,6 +126,13 @@ interface DAOFacade {
     suspend fun createParteEmergenciaMovil(folioPEmergencia: Int, idMovil: Int): PartesEmergenciaMoviles
     suspend fun deleteParteEmergenciaMovil(idParteEmergenciaMovil: Int): Boolean
     suspend fun updateParteEmergenciaMovil(idParteEmergenciaMovil: Int, folioPEmergencia: Int, idMovil: Int): PartesEmergenciaMoviles
+
+    // ParteEmergenciaMaterial
+    suspend fun allParteEmergenciaMaterial(): List<PartesEmergenciaMateriales>
+    suspend fun getParteEmergenciaMaterial(idparteemergenciamaterialp: Int): PartesEmergenciaMateriales?
+    suspend fun createParteEmergenciaMaterial(folioPEmergencia: Int, idMaterialP: Int): PartesEmergenciaMateriales
+    suspend fun deleteParteEmergenciaMaterial(idparteemergenciamaterialp: Int): Boolean
+    suspend fun updateParteEmergenciaMaterial(idparteemergenciamaterialp: Int, folioPEmergencia: Int, idMaterialP: Int): PartesEmergenciaMateriales
 
 
 }
