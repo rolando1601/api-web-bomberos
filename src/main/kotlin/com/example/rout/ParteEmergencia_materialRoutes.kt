@@ -1,99 +1,99 @@
 package com.example.routes
 
-import com.example.models.MaterialesP
 import com.example.dao.DAOFacadeImpl
+import com.example.models.PartesEmergenciaMateriales
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Route.parteEmergenciaMaterialPRoutes(dao: DAOFacadeImpl) {
-    route("/material-p") {
+fun Route.parteEmergenciaMaterialRoutes(dao: DAOFacadeImpl) {
+    route("/parte-emergencia-material") {
 
-        // Ruta base para /material-p
+        // Ruta base para /parte-emergencia-material
         get {
-            call.respond(HttpStatusCode.OK, "Ruta base de Materiales Peligrosos. Usa /crear, /obtener o /{idMaterialP} para más acciones.")
+            call.respond(HttpStatusCode.OK, "Ruta base de Parte Emergencia Material. Usa /crear, /obtener o /buscar/{id} para más acciones.")
         }
 
-        // Obtener todos los materiales (GET /material-p/obtener)
+        // Obtener todas las asociaciones ParteEmergencia-Material (GET /parte-emergencia-material/obtener)
         get("/obtener") {
             try {
-                val materiales = dao.allMaterialesP() // Método DAO para obtener todos los registros
-                call.respond(HttpStatusCode.OK, materiales)
+                val asociaciones = dao.allParteEmergenciaMaterial()
+                call.respond(HttpStatusCode.OK, asociaciones)
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al obtener los materiales: ${e.message}"))
+                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al obtener las asociaciones: ${e.message}"))
             }
         }
 
-        // Crear un nuevo material (POST /material-p/crear)
+        // Crear una nueva asociación ParteEmergencia-Material (POST /parte-emergencia-material/crear)
         post("/crear") {
             try {
-                val material = call.receive<MaterialesP>()
-
-                val createdMaterial = dao.createMaterialP(
-                    clasificacion = material.clasificacion
+                val asociacion = call.receive<PartesEmergenciaMateriales>()
+                val createdAsociacion = dao.createParteEmergenciaMaterial(
+                    folioPEmergencia = asociacion.folioPEmergencia,
+                    idMaterialP = asociacion.idMaterialP
                 )
-                call.respond(HttpStatusCode.Created, createdMaterial)
+                call.respond(HttpStatusCode.Created, createdAsociacion)
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al crear el material: ${e.message}"))
+                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al crear la asociación: ${e.message}"))
             }
         }
 
-        // Obtener un material por ID (GET /material-p/{idMaterialP})
-        get("/{idMaterialP}") {
-            val idMaterialP = call.parameters["idMaterialP"]?.toIntOrNull()
-            if (idMaterialP == null) {
+        // Obtener una asociación ParteEmergencia-Material por ID (GET /parte-emergencia-material/buscar/{id})
+        get("/buscar/{id}") {
+            val idparteemergenciamaterialp = call.parameters["id"]?.toIntOrNull()
+            if (idparteemergenciamaterialp == null) {
                 call.respond(HttpStatusCode.BadRequest, mapOf("error" to "ID inválido o faltante."))
                 return@get
             }
             try {
-                val material = dao.getMaterialP(idMaterialP)
-                if (material == null) {
-                    call.respond(HttpStatusCode.NotFound, mapOf("error" to "Material no encontrado."))
+                val asociacion = dao.getParteEmergenciaMaterial(idparteemergenciamaterialp)
+                if (asociacion == null) {
+                    call.respond(HttpStatusCode.NotFound, mapOf("error" to "Asociación no encontrada."))
                 } else {
-                    call.respond(HttpStatusCode.OK, material)
+                    call.respond(HttpStatusCode.OK, asociacion)
                 }
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al obtener el material: ${e.message}"))
+                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al obtener la asociación: ${e.message}"))
             }
         }
 
-        // Actualizar un material (PUT /material-p/actualizar/{idMaterialP})
-        put("/actualizar/{idMaterialP}") {
-            val idMaterialP = call.parameters["idMaterialP"]?.toIntOrNull()
-            if (idMaterialP == null) {
+        // Actualizar una asociación ParteEmergencia-Material (PUT /parte-emergencia-material/actualizar/{id})
+        put("/actualizar/{id}") {
+            val idparteemergenciamaterialp = call.parameters["id"]?.toIntOrNull()
+            if (idparteemergenciamaterialp == null) {
                 call.respond(HttpStatusCode.BadRequest, mapOf("error" to "ID inválido o faltante."))
                 return@put
             }
             try {
-                val material = call.receive<MaterialesP>()
-                val updatedMaterial = dao.updateMaterialP(
-                    idMaterialP = idMaterialP,
-                    clasificacion = material.clasificacion
+                val asociacion = call.receive<PartesEmergenciaMateriales>()
+                val updatedAsociacion = dao.updateParteEmergenciaMaterial(
+                    idparteemergenciamaterialp = idparteemergenciamaterialp,
+                    folioPEmergencia = asociacion.folioPEmergencia,
+                    idMaterialP = asociacion.idMaterialP
                 )
-                call.respond(HttpStatusCode.OK, updatedMaterial)
+                call.respond(HttpStatusCode.OK, updatedAsociacion)
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al actualizar el material: ${e.message}"))
+                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al actualizar la asociación: ${e.message}"))
             }
         }
 
-        // Eliminar un material (DELETE /material-p/eliminar/{idMaterialP})
-        delete("/eliminar/{idMaterialP}") {
-            val idMaterialP = call.parameters["idMaterialP"]?.toIntOrNull()
-            if (idMaterialP == null) {
+        // Eliminar una asociación ParteEmergencia-Material (DELETE /parte-emergencia-material/eliminar/{id})
+        delete("/eliminar/{id}") {
+            val idparteemergenciamaterialp = call.parameters["id"]?.toIntOrNull()
+            if (idparteemergenciamaterialp == null) {
                 call.respond(HttpStatusCode.BadRequest, mapOf("error" to "ID inválido o faltante."))
                 return@delete
             }
             try {
-                val success = dao.deleteMaterialP(idMaterialP)
+                val success = dao.deleteParteEmergenciaMaterial(idparteemergenciamaterialp)
                 if (success) {
-                    call.respond(HttpStatusCode.OK, mapOf("message" to "Material eliminado exitosamente."))
+                    call.respond(HttpStatusCode.OK, mapOf("message" to "Asociación eliminada exitosamente."))
                 } else {
-                    call.respond(HttpStatusCode.NotFound, mapOf("error" to "Material no encontrado."))
+                    call.respond(HttpStatusCode.NotFound, mapOf("error" to "Asociación no encontrada."))
                 }
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al eliminar el material: ${e.message}"))
+                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al eliminar la asociación: ${e.message}"))
             }
         }
     }

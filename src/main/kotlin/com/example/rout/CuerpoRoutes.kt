@@ -1,12 +1,11 @@
 package com.example.routes
 
+import com.example.dao.DAOFacadeImpl
+import com.example.models.Cuerpos
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import com.example.models.Cuerpos
-import com.example.dao.DAOFacadeImpl
 
 fun Route.cuerpoRoutes(dao: DAOFacadeImpl) {
     route("/cuerpo") {

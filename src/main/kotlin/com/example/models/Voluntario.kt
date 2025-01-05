@@ -17,10 +17,10 @@ data class Voluntarios(
     val alergias: String,
     val fechaIngreso: LocalDate,
     val claveRadial: String,
-    val cargoVoluntario: String,
     val rutVoluntario: String,
     val idCompania: Int,
-    val idUsuario: Int?
+    val idUsuario: Int?,
+    val idCargo: Int
 )
 
 object Voluntario : Table() {
@@ -34,16 +34,12 @@ object Voluntario : Table() {
     val alergias = text("alergias")
     val fechaIngreso = date("fechaIngreso")
     val claveRadial = text("claveRadial")
-    val cargoVoluntario = text("cargoVoluntario")
     val rutVoluntario = varchar("rutVoluntario", 12)
     val idCompania = integer("idCompania").references(Compania.idCompania)
     val idUsuario = integer("idUsuario").references(Usuario.idUsuario).nullable()
+    val idCargo = integer("idCargo").references(Cargo.idCargo)
 
     override val primaryKey = PrimaryKey(idVoluntario)
-//Insersion de fecha Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
-
-
-
 
 
 }

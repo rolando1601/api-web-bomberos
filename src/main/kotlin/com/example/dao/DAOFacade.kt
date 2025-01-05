@@ -2,7 +2,6 @@ package com.example.dao
 
 import com.example.models.*
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 
 interface DAOFacade {
@@ -31,17 +30,17 @@ interface DAOFacade {
     // Usuario
     suspend fun allUsuarios(): List<Usuarios>
     suspend fun getUsuario(idUsuario: Int): Usuarios?
-    suspend fun createUsuario( nombreUsuario: String, contrasena: String, idRol: Int): Usuarios
+    suspend fun createUsuario(nombreUsuario: String, contrasena: String): Usuarios
     suspend fun deleteUsuario(idUsuario: Int): Boolean
-    suspend fun updateUsuario(idUsuario: Int, nombreUsuario: String, contrasena: String, idRol: Int): Usuarios
+    suspend fun updateUsuario(idUsuario: Int, nombreUsuario: String, contrasena: String): Usuarios
     suspend fun loginUsuario(nombreUsuario: String, contrasena: String): Usuarios?
 
-    // Voluntario
+    // Voluntarios
     suspend fun allVoluntarios(): List<Voluntarios>
     suspend fun getVoluntario(idVoluntario: Int): Voluntarios?
-    suspend fun createVoluntario( nombreVol: String, fechaNac: LocalDate, direccion: String, numeroContacto: String, tipoSangre: String, enfermedades: String, alergias: String, fechaIngreso: LocalDate, claveRadial: String, cargoVoluntario: String, rutVoluntario: String, idCompania: Int, idUsuario: Int? ): Voluntarios
+    suspend fun createVoluntario(nombreVol: String, fechaNac: LocalDate, direccion: String, numeroContacto: String, tipoSangre: String, enfermedades: String, alergias: String, fechaIngreso: LocalDate, claveRadial: String, rutVoluntario: String, idCompania: Int, idUsuario: Int?, idCargo: Int): Voluntarios
     suspend fun deleteVoluntario(idVoluntario: Int): Boolean
-    suspend fun updateVoluntario(idVoluntario: Int, nombreVol: String, fechaNac: LocalDate, direccion: String, numeroContacto: String, tipoSangre: String, enfermedades: String, alergias: String, fechaIngreso: LocalDate, claveRadial: String, cargoVoluntario: String, rutVoluntario: String, idCompania: Int, idUsuario: Int?): Voluntarios
+    suspend fun updateVoluntario(idVoluntario: Int, nombreVol: String, fechaNac: LocalDate, direccion: String, numeroContacto: String, tipoSangre: String, enfermedades: String, alergias: String, fechaIngreso: LocalDate, claveRadial: String, rutVoluntario: String, idCompania: Int, idUsuario: Int?, idCargo: Int): Voluntarios
 
     // Inmueble
     suspend fun allInmuebles(): List<Inmuebles>
@@ -64,26 +63,27 @@ interface DAOFacade {
     suspend fun deleteVehiculo(idVehiculo: Int): Boolean
     suspend fun updateVehiculo(idVehiculo: Int, patente: String, marca: String, modelo: String, tipoVehiculo: String, folioPEmergencia: Int?): Vehiculos
 
-    // Emergencia
-    suspend fun allEmergencias(): List<Emergencias>
-    suspend fun getEmergencia(idEmergencia: Int): Emergencias?
-    suspend fun createEmergencia( claveEmergencia: String, cuadrante: String, direccionEmergencia: String, folioPEmergencia: Int): Emergencias
-    suspend fun deleteEmergencia(idEmergencia: Int): Boolean
-    suspend fun updateEmergencia(idEmergencia: Int, claveEmergencia: String, cuadrante: String, direccionEmergencia: String, folioPEmergencia: Int): Emergencias
+    // ClaveEmergencias
+    suspend fun allClaveEmergencias(): List<ClaveEmergencias>
+    suspend fun getClaveEmergencia(idClaveEmergencia: Int): ClaveEmergencias?
+    suspend fun createClaveEmergencia(nombreClaveEmergencia: String): ClaveEmergencias
+    suspend fun deleteClaveEmergencia(idClaveEmergencia: Int): Boolean
+    suspend fun updateClaveEmergencia(idClaveEmergencia: Int, nombreClaveEmergencia: String): ClaveEmergencias
 
-    // ParteEmergencia
-    suspend fun allParteEmergencias(): List<Partes_emergencia>
+
+    // Partes_emergencia
+    suspend fun allPartesEmergencia(): List<Partes_emergencia>
     suspend fun getParteEmergencia(folioPEmergencia: Int): Partes_emergencia?
-    suspend fun createParteEmergencia(tipoEmergencia: String, horaInicio: LocalTime, horaFin: LocalTime, fechaEmergencia: LocalDate, preInforme: String, oficial: String, llamarEmpresaQuimica: Boolean?, descripcionMaterialP: String, folioPAsistencia: Int?): Partes_emergencia
+    suspend fun createParteEmergencia(horaInicio: LocalTime, horaFin: LocalTime, fechaEmergencia: LocalDate, preInforme: String, llamarEmpresaQuimica: Boolean, descripcionMaterialP: String, direccionEmergencia: String, idOficial: Int, idClaveEmergencia: Int, folioPAsistencia: Int?): Partes_emergencia
     suspend fun deleteParteEmergencia(folioPEmergencia: Int): Boolean
-    suspend fun updateParteEmergencia(folioPEmergencia: Int, tipoEmergencia: String,horaInicio: LocalTime, horaFin: LocalTime, fechaEmergencia: LocalDate, preInforme: String, oficial: String, llamarEmpresaQuimica: Boolean?, descripcionMaterialP: String, folioPAsistencia: Int?): Partes_emergencia
+    suspend fun updateParteEmergencia(folioPEmergencia: Int, horaInicio: LocalTime, horaFin: LocalTime, fechaEmergencia: LocalDate, preInforme: String, llamarEmpresaQuimica: Boolean, descripcionMaterialP: String, direccionEmergencia: String, idOficial: Int, idClaveEmergencia: Int, folioPAsistencia: Int?): Partes_emergencia
 
-    // ParteAsistencia
-    suspend fun allParteAsistencias(): List<Partes_asistencia>
+    // Partes_asistencia
+    suspend fun allPartesAsistencia(): List<Partes_asistencia>
     suspend fun getParteAsistencia(folioPAsistencia: Int): Partes_asistencia?
-    suspend fun createParteAsistencia( tipoLlamado: String, aCargoDelCuerpo: String, aCargoDeLaCompania: String, fechaAsistencia: LocalDate, horaInicio: LocalTime, horaFin: LocalTime, direccionAsistencia: String, totalAsistencia: Int, observaciones: String): Partes_asistencia
+    suspend fun createParteAsistencia(aCargoDelCuerpo: Int, aCargoDeLaCompania: Int, fechaAsistencia: LocalDate, horaInicio: LocalTime, horaFin: LocalTime, direccionAsistencia: String, totalAsistencia: Int, observaciones: String, idTipoLlamado: Int): Partes_asistencia
     suspend fun deleteParteAsistencia(folioPAsistencia: Int): Boolean
-    suspend fun updateParteAsistencia(folioPAsistencia: Int, tipoLlamado: String, aCargoDelCuerpo: String, aCargoDeLaCompania: String, fechaAsistencia: LocalDate, horaInicio: LocalTime, horaFin: LocalTime, direccionAsistencia: String, totalAsistencia: Int, observaciones: String): Partes_asistencia
+    suspend fun updateParteAsistencia(folioPAsistencia: Int, aCargoDelCuerpo: Int, aCargoDeLaCompania: Int, fechaAsistencia: LocalDate, horaInicio: LocalTime, horaFin: LocalTime, direccionAsistencia: String, totalAsistencia: Int, observaciones: String, idTipoLlamado: Int): Partes_asistencia
 
     // MaterialP
     suspend fun allMaterialesP(): List<MaterialesP>
@@ -133,6 +133,21 @@ interface DAOFacade {
     suspend fun createParteEmergenciaMaterial(folioPEmergencia: Int, idMaterialP: Int): PartesEmergenciaMateriales
     suspend fun deleteParteEmergenciaMaterial(idparteemergenciamaterialp: Int): Boolean
     suspend fun updateParteEmergenciaMaterial(idparteemergenciamaterialp: Int, folioPEmergencia: Int, idMaterialP: Int): PartesEmergenciaMateriales
+
+    // Cargos
+    suspend fun allCargos(): List<Cargos>
+    suspend fun getCargo(idCargo: Int): Cargos?
+    suspend fun createCargo(idCargo: Int, nombreCarg: String): Cargos
+    suspend fun deleteCargo(idCargo: Int): Boolean
+    suspend fun updateCargo(idCargo: Int, nombreCarg: String): Cargos
+
+    // TipoCitacion
+    suspend fun allTipoCitaciones(): List<TipoCitacion>
+    suspend fun getTipoCitacion(idTipoLlamado: Int): TipoCitacion?
+    suspend fun createTipoCitacion(nombreTipoLlamado: String): TipoCitacion
+    suspend fun deleteTipoCitacion(idTipoLlamado: Int): Boolean
+    suspend fun updateTipoCitacion(idTipoLlamado: Int, nombreTipoLlamado: String): TipoCitacion
+
 
 
 }

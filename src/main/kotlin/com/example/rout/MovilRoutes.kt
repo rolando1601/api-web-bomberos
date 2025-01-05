@@ -1,13 +1,11 @@
 package com.example.routes
 
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-import com.example.models.Movil
 import com.example.dao.DAOFacadeImpl
 import com.example.models.Moviles
+import io.ktor.http.*
 import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 
 fun Route.movilRoutes(dao: DAOFacadeImpl) {
     route("/movil") {

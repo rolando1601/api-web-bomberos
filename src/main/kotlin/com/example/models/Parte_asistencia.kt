@@ -10,28 +10,28 @@ import org.jetbrains.exposed.sql.kotlin.datetime.time
 @Serializable
 data class Partes_asistencia(
     val folioPAsistencia: Int? = null,
-    val tipoLlamado: String,
-    val aCargoDelCuerpo: String,
-    val aCargoDeLaCompania: String,
+    val aCargoDelCuerpo: Int,
+    val aCargoDeLaCompania: Int,
     val fechaAsistencia: LocalDate,
     val horaInicio: LocalTime,
     val horaFin: LocalTime,
     val direccionAsistencia: String,
     val totalAsistencia: Int,
     val observaciones: String,
+    val idTipoLlamado: Int
 )
 
 object Parte_asistencia : Table() {
     val folioPAsistencia = integer("folioPAsistencia").autoIncrement()
-    val tipoLlamado = varchar("tipoLlamado", 100)
-    val aCargoDelCuerpo = varchar("aCargoDelCuerpo", 255)
-    val aCargoDeLaCompania = varchar("aCargoDeLaCompania", 255)
+    val aCargoDelCuerpo = integer("aCargoDelCuerpo").references(Voluntario.idVoluntario)
+    val aCargoDeLaCompania = integer("aCargoDeLaCompania").references(Voluntario.idVoluntario)
     val fechaAsistencia = date("fechaAsistencia")
     val horaInicio = time("horaInicio")
     val horaFin = time("horaFin")
     val direccionAsistencia = varchar("direccionAsistencia", 255)
     val totalAsistencia = integer("totalAsistencia")
     val observaciones = text("observaciones")
+    val idTipoLlamado = integer("idTipoLlamado").references(Tipo_citacion.idTipoLlamado)
 
     override val primaryKey = PrimaryKey(folioPAsistencia)
 }

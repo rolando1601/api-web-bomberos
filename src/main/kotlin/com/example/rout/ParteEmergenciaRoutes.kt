@@ -1,52 +1,53 @@
 package com.example.routes
 
+import com.example.dao.DAOFacadeImpl
+import com.example.models.Partes_emergencia
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import com.example.models.Partes_emergencia
-import com.example.dao.DAOFacadeImpl
-import com.example.models.Parte_emergencia
 
 fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
     route("/parte-emergencia") {
 
-        // Manejar GET /parte-emergencia directamente
+        // Ruta base
         get {
-            call.respond(HttpStatusCode.OK, "Ruta base de Parte Emergencia. Usa /crear o /obtener para más acciones.")
+            call.respond(HttpStatusCode.OK, "Ruta base de Parte Emergencia. Usa /crear, /obtener, /actualizar, /eliminar o /buscar para más acciones.")
         }
-        // Obtener todos los partes de emergencia (GET /parte-emergencia/obtener)
+
+        // Obtener todos los partes de emergencia
         get("/obtener") {
             try {
-                val partesEmergencia = dao.allParteEmergencias() // Método DAO para obtener todos los registros
+                val partesEmergencia = dao.allPartesEmergencia()
                 call.respond(HttpStatusCode.OK, partesEmergencia)
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al obtener partes de emergencia: ${e.message}"))
             }
         }
+
+        // Crear un nuevo parte de emergencia
         post("/crear") {
             try {
                 val parteEmergencia = call.receive<Partes_emergencia>()
-
                 val createdParteEmergencia = dao.createParteEmergencia(
-                    tipoEmergencia = parteEmergencia.tipoEmergencia,
                     horaInicio = parteEmergencia.horaInicio,
                     horaFin = parteEmergencia.horaFin,
                     fechaEmergencia = parteEmergencia.fechaEmergencia,
                     preInforme = parteEmergencia.preInforme,
-                    oficial = parteEmergencia.oficial,
-                    llamarEmpresaQuimica = parteEmergencia.llamarEmpresaQuimica, // Nuevo atributo
+                    llamarEmpresaQuimica = parteEmergencia.llamarEmpresaQuimica,
                     descripcionMaterialP = parteEmergencia.descripcionMaterialP,
+                    direccionEmergencia = parteEmergencia.direccionEmergencia,
+                    idOficial = parteEmergencia.idOficial,
+                    idClaveEmergencia = parteEmergencia.idClaveEmergencia,
                     folioPAsistencia = parteEmergencia.folioPAsistencia
                 )
-                call.respond(HttpStatusCode.Created, createdParteEmergencia) // Responder con el objeto completo
+                call.respond(HttpStatusCode.Created, createdParteEmergencia)
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al crear parte de emergencia: ${e.message}"))
             }
         }
 
-        // Obtener un parte de emergencia por folio (GET /parte-emergencia/{folioPEmergencia})
+        // Buscar un parte de emergencia por folio
         get("/buscar/{folioPEmergencia}") {
             val folioPEmergencia = call.parameters["folioPEmergencia"]?.toIntOrNull()
             if (folioPEmergencia == null) {
@@ -65,7 +66,7 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
             }
         }
 
-        // Actualizar un parte de emergencia (PUT /parte-emergencia/actualizar/{folioPEmergencia})
+        // Actualizar un parte de emergencia
         put("/actualizar/{folioPEmergencia}") {
             val folioPEmergencia = call.parameters["folioPEmergencia"]?.toIntOrNull()
             if (folioPEmergencia == null) {
@@ -76,14 +77,15 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
                 val parteEmergencia = call.receive<Partes_emergencia>()
                 val updatedParteEmergencia = dao.updateParteEmergencia(
                     folioPEmergencia = folioPEmergencia,
-                    tipoEmergencia = parteEmergencia.tipoEmergencia,
                     horaInicio = parteEmergencia.horaInicio,
                     horaFin = parteEmergencia.horaFin,
                     fechaEmergencia = parteEmergencia.fechaEmergencia,
                     preInforme = parteEmergencia.preInforme,
-                    oficial = parteEmergencia.oficial,
-                    llamarEmpresaQuimica = parteEmergencia.llamarEmpresaQuimica, // Nuevo atributo
+                    llamarEmpresaQuimica = parteEmergencia.llamarEmpresaQuimica,
                     descripcionMaterialP = parteEmergencia.descripcionMaterialP,
+                    direccionEmergencia = parteEmergencia.direccionEmergencia,
+                    idOficial = parteEmergencia.idOficial,
+                    idClaveEmergencia = parteEmergencia.idClaveEmergencia,
                     folioPAsistencia = parteEmergencia.folioPAsistencia
                 )
                 call.respond(HttpStatusCode.OK, updatedParteEmergencia)
@@ -92,7 +94,7 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
             }
         }
 
-        // Eliminar un parte de emergencia (DELETE /parte-emergencia/eliminar/{folioPEmergencia})
+        // Eliminar un parte de emergencia
         delete("/eliminar/{folioPEmergencia}") {
             val folioPEmergencia = call.parameters["folioPEmergencia"]?.toIntOrNull()
             if (folioPEmergencia == null) {

@@ -1,25 +1,24 @@
 package com.example.routes
 
+import com.example.dao.DAOFacadeImpl
+import com.example.models.Voluntarios
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import com.example.models.Voluntarios
-import com.example.dao.DAOFacadeImpl
 
 fun Route.voluntarioRoutes(dao: DAOFacadeImpl) {
     route("/voluntario") {
 
-        // Manejar GET /voluntario directamente
+        // Ruta base
         get {
-            call.respond(HttpStatusCode.OK, "Ruta base de Voluntarios. Usa /crear o /obtener para más acciones.")
+            call.respond(HttpStatusCode.OK, "Ruta base de Voluntarios. Usa /crear, /obtener, /actualizar, /eliminar o /buscar para más acciones.")
         }
 
-        // Obtener todos los voluntarios (GET /voluntario/obtener)
+        // Obtener todos los voluntarios
         get("/obtener") {
             try {
-                val voluntarios = dao.allVoluntarios() // Método DAO para obtener todos los registros
+                val voluntarios = dao.allVoluntarios()
                 call.respond(HttpStatusCode.OK, voluntarios)
             } catch (e: Exception) {
                 call.respond(
@@ -29,11 +28,32 @@ fun Route.voluntarioRoutes(dao: DAOFacadeImpl) {
             }
         }
 
-        // Crear un nuevo voluntario (POST /voluntario/crear)
+        // Buscar un voluntario por ID
+        get("/buscar/{id}") {
+            val idVoluntario = call.parameters["id"]?.toIntOrNull()
+            if (idVoluntario == null) {
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "ID inválido"))
+                return@get
+            }
+            try {
+                val voluntario = dao.getVoluntario(idVoluntario)
+                if (voluntario != null) {
+                    call.respond(HttpStatusCode.OK, voluntario)
+                } else {
+                    call.respond(HttpStatusCode.NotFound, mapOf("error" to "Voluntario no encontrado"))
+                }
+            } catch (e: Exception) {
+                call.respond(
+                    HttpStatusCode.InternalServerError,
+                    mapOf("error" to "Error al buscar voluntario: ${e.message}")
+                )
+            }
+        }
+
+        // Crear un nuevo voluntario
         post("/crear") {
             try {
-                val nuevoVoluntario = call.receive<Voluntarios>() // Recibe el cuerpo como un objeto Voluntarios
-
+                val nuevoVoluntario = call.receive<Voluntarios>()
                 val voluntarioCreado = dao.createVoluntario(
                     nombreVol = nuevoVoluntario.nombreVol,
                     fechaNac = nuevoVoluntario.fechaNac,
@@ -44,10 +64,10 @@ fun Route.voluntarioRoutes(dao: DAOFacadeImpl) {
                     alergias = nuevoVoluntario.alergias,
                     fechaIngreso = nuevoVoluntario.fechaIngreso,
                     claveRadial = nuevoVoluntario.claveRadial,
-                    cargoVoluntario = nuevoVoluntario.cargoVoluntario,
                     rutVoluntario = nuevoVoluntario.rutVoluntario,
                     idCompania = nuevoVoluntario.idCompania,
-                    idUsuario = nuevoVoluntario.idUsuario
+                    idUsuario = nuevoVoluntario.idUsuario,
+                    idCargo = nuevoVoluntario.idCargo
                 )
                 call.respond(HttpStatusCode.Created, voluntarioCreado)
             } catch (e: Exception) {
@@ -57,14 +77,15 @@ fun Route.voluntarioRoutes(dao: DAOFacadeImpl) {
                 )
             }
         }
-        delete("/eliminar/{id}") {
-            try {
-                val idVoluntario = call.parameters["id"]?.toIntOrNull()
-                if (idVoluntario == null) {
-                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to "ID inválido"))
-                    return@delete
-                }
 
+        // Eliminar un voluntario por ID
+        delete("/eliminar/{id}") {
+            val idVoluntario = call.parameters["id"]?.toIntOrNull()
+            if (idVoluntario == null) {
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "ID inválido"))
+                return@delete
+            }
+            try {
                 val eliminado = dao.deleteVoluntario(idVoluntario)
                 if (eliminado) {
                     call.respond(HttpStatusCode.OK, mapOf("message" to "Voluntario eliminado correctamente"))
@@ -79,26 +100,24 @@ fun Route.voluntarioRoutes(dao: DAOFacadeImpl) {
             }
         }
 
-        // Actualizar un voluntario (PUT /voluntario/actualizar/{rutVoluntario})
+        // Actualizar un voluntario por rut
         put("/actualizar/{rutVoluntario}") {
+            val rutVoluntario = call.parameters["rutVoluntario"]
+            if (rutVoluntario.isNullOrBlank()) {
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Rut del voluntario es requerido"))
+                return@put
+            }
             try {
-                // Obtener el rutVoluntario de los parÃ¡metros de la ruta
-                val rutVoluntario = call.parameters["rutVoluntario"] ?: throw IllegalArgumentException("Rut voluntario es requerido")
-
-                // Recibimos el resto de los datos a actualizar en el cuerpo de la solicitud
                 val datosActualizados = call.receive<Voluntarios>()
-
-                // Asegurarse de que el rutVoluntario recibido en el cuerpo sea el mismo que el de la ruta
                 if (rutVoluntario != datosActualizados.rutVoluntario) {
-                    throw IllegalArgumentException("El rut en la URL no coincide con el rut en los datos enviados.")
+                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to "El rut en la URL no coincide con el rut en los datos enviados"))
+                    return@put
                 }
 
-                // Obtener el idVoluntario a partir del rutVoluntario
                 val idVoluntario = dao.getIdVoluntarioByRut(rutVoluntario)
 
-                // Actualizamos el voluntario usando el idVoluntario inferido
                 val voluntarioActualizado = dao.updateVoluntario(
-                    idVoluntario = idVoluntario, // Usamos el idVoluntario obtenido
+                    idVoluntario = idVoluntario,
                     nombreVol = datosActualizados.nombreVol,
                     fechaNac = datosActualizados.fechaNac,
                     direccion = datosActualizados.direccion,
@@ -108,12 +127,11 @@ fun Route.voluntarioRoutes(dao: DAOFacadeImpl) {
                     alergias = datosActualizados.alergias,
                     fechaIngreso = datosActualizados.fechaIngreso,
                     claveRadial = datosActualizados.claveRadial,
-                    cargoVoluntario = datosActualizados.cargoVoluntario,
-                    rutVoluntario = rutVoluntario,
+                    rutVoluntario = datosActualizados.rutVoluntario,
                     idCompania = datosActualizados.idCompania,
-                    idUsuario = datosActualizados.idUsuario
+                    idUsuario = datosActualizados.idUsuario,
+                    idCargo = datosActualizados.idCargo
                 )
-
                 call.respond(HttpStatusCode.OK, voluntarioActualizado)
             } catch (e: IllegalArgumentException) {
                 call.respond(HttpStatusCode.NotFound, mapOf("error" to e.message))

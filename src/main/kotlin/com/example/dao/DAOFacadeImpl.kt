@@ -99,17 +99,18 @@ class DAOFacadeImpl : DAOFacade {
     // Cuerpo implementation
 
     private fun resultToCuerpo(row: ResultRow) = Cuerpos(
+        idCuerpo = row[Cuerpo.idCuerpo],
         nombreCuerpo = row[Cuerpo.nombreCuerpo],
         provincia = row[Cuerpo.provincia],
         region = row[Cuerpo.region],
         comuna = row[Cuerpo.comuna]
     )
 
-    override suspend fun allCuerpos(): List<Cuerpos> = dbQuery {
+    override suspend fun allCuerpos(): List<Cuerpos> = transaction {
         Cuerpo.selectAll().map(::resultToCuerpo)
     }
 
-    override suspend fun getCuerpo(idCuerpo: Int): Cuerpos? = dbQuery {
+    override suspend fun getCuerpo(idCuerpo: Int): Cuerpos? = transaction {
         Cuerpo.select { Cuerpo.idCuerpo eq idCuerpo }
             .mapNotNull(::resultToCuerpo)
             .singleOrNull()
@@ -141,8 +142,7 @@ class DAOFacadeImpl : DAOFacade {
     }
 
     override suspend fun deleteCuerpo(idCuerpo: Int): Boolean = transaction {
-        val rowsDeleted = Cuerpo.deleteWhere { Cuerpo.idCuerpo eq idCuerpo }
-        rowsDeleted > 0
+        Cuerpo.deleteWhere { Cuerpo.idCuerpo eq idCuerpo } > 0
     }
 
     override suspend fun updateCuerpo(
@@ -152,38 +152,41 @@ class DAOFacadeImpl : DAOFacade {
         region: String,
         comuna: String
     ): Cuerpos = transaction {
-        // Actualizar el cuerpo en la base de datos
         val rowsUpdated = Cuerpo.update({ Cuerpo.idCuerpo eq idCuerpo }) {
-            it[Cuerpo.nombreCuerpo] = nombreCuerpo
-            it[Cuerpo.provincia] = provincia
-            it[Cuerpo.region] = region
-            it[Cuerpo.comuna] = comuna
+            it[this.nombreCuerpo] = nombreCuerpo
+            it[this.provincia] = provincia
+            it[this.region] = region
+            it[this.comuna] = comuna
         }
 
-        // Si no se actualizó ningún registro, lanzar una excepción
-        if (rowsUpdated == 0) {
-            throw IllegalArgumentException("Cuerpo con id $idCuerpo no encontrado")
-        }
+        if (rowsUpdated == 0) throw IllegalArgumentException("Cuerpo con id $idCuerpo no encontrado")
 
-        // Retornar el objeto actualizado
-        Cuerpos(idCuerpo, nombreCuerpo, provincia, region, comuna)
+        Cuerpos(
+            idCuerpo = idCuerpo,
+            nombreCuerpo = nombreCuerpo,
+            provincia = provincia,
+            region = region,
+            comuna = comuna
+        )
     }
+
 
 
     // Compania implementation
 
     private fun resultToCompania(row: ResultRow) = Companias(
+        idCompania = row[Compania.idCompania],
         nombreCia = row[Compania.nombreCia],
         direccionCia = row[Compania.direccionCia],
         especialidad = row[Compania.especialidad],
         idCuerpo = row[Compania.idCuerpo]
     )
 
-    override suspend fun allCompanias(): List<Companias> = dbQuery {
+    override suspend fun allCompanias(): List<Companias> = transaction {
         Compania.selectAll().map(::resultToCompania)
     }
 
-    override suspend fun getCompania(idCompania: Int): Companias? = dbQuery {
+    override suspend fun getCompania(idCompania: Int): Companias? = transaction {
         Compania.select { Compania.idCompania eq idCompania }
             .mapNotNull(::resultToCompania)
             .singleOrNull()
@@ -214,7 +217,7 @@ class DAOFacadeImpl : DAOFacade {
         )
     }
 
-    override suspend fun deleteCompania(idCompania: Int): Boolean = dbQuery {
+    override suspend fun deleteCompania(idCompania: Int): Boolean = transaction {
         Compania.deleteWhere { Compania.idCompania eq idCompania } > 0
     }
 
@@ -224,27 +227,32 @@ class DAOFacadeImpl : DAOFacade {
         direccionCia: String,
         especialidad: String,
         idCuerpo: Int?
-    ): Companias {
-        val rowsUpdated = dbQuery {
-            Compania.update({ Compania.idCompania eq idCompania }) {
-                it[Compania.nombreCia] = nombreCia
-                it[Compania.direccionCia] = direccionCia
-                it[Compania.especialidad] = especialidad
-                it[Compania.idCuerpo] = idCuerpo
-            }
+    ): Companias = transaction {
+        val rowsUpdated = Compania.update({ Compania.idCompania eq idCompania }) {
+            it[this.nombreCia] = nombreCia
+            it[this.direccionCia] = direccionCia
+            it[this.especialidad] = especialidad
+            it[this.idCuerpo] = idCuerpo
         }
-        if (rowsUpdated == 0) {
-            throw IllegalArgumentException("Compañía con id $idCompania no encontrada")
-        }
-        return Companias(idCompania, nombreCia, direccionCia, especialidad, idCuerpo)
+
+        if (rowsUpdated == 0) throw IllegalArgumentException("Compañía con id $idCompania no encontrada")
+
+        Companias(
+            idCompania = idCompania,
+            nombreCia = nombreCia,
+            direccionCia = direccionCia,
+            especialidad = especialidad,
+            idCuerpo = idCuerpo
+        )
     }
+
 
     // Usuario implementation
 
     private fun resultToUsuario(row: ResultRow) = Usuarios(
+        idUsuario = row[Usuario.idUsuario],
         nombreUsuario = row[Usuario.nombreUsuario],
-        contrasena = row[Usuario.contrasena],
-        idRol = row[Usuario.idRol] // idRol es requerido
+        contrasena = row[Usuario.contrasena]
     )
 
     override suspend fun allUsuarios(): List<Usuarios> = dbQuery {
@@ -259,13 +267,11 @@ class DAOFacadeImpl : DAOFacade {
 
     override suspend fun createUsuario(
         nombreUsuario: String,
-        contrasena: String,
-        idRol: Int
+        contrasena: String
     ): Usuarios = transaction {
         val insertStatement = Usuario.insert {
             it[this.nombreUsuario] = nombreUsuario
             it[this.contrasena] = contrasena
-            it[this.idRol] = idRol
         }
 
         val idUsuario = insertStatement.resultedValues?.get(0)?.get(Usuario.idUsuario)
@@ -274,8 +280,7 @@ class DAOFacadeImpl : DAOFacade {
         Usuarios(
             idUsuario = idUsuario,
             nombreUsuario = nombreUsuario,
-            contrasena = contrasena,
-            idRol = idRol
+            contrasena = contrasena
         )
     }
 
@@ -287,21 +292,20 @@ class DAOFacadeImpl : DAOFacade {
     override suspend fun updateUsuario(
         idUsuario: Int,
         nombreUsuario: String,
-        contrasena: String,
-        idRol: Int // idRol es requerido
+        contrasena: String
     ): Usuarios {
-        val rowsUpdated = dbQuery {
+        val rowsUpdated = transaction {
             Usuario.update({ Usuario.idUsuario eq idUsuario }) {
-                it[Usuario.nombreUsuario] = nombreUsuario
-                it[Usuario.contrasena] = contrasena
-                it[Usuario.idRol] = idRol
+                it[this.nombreUsuario] = nombreUsuario
+                it[this.contrasena] = contrasena
             }
         }
         if (rowsUpdated == 0) {
             throw IllegalArgumentException("Usuario con id $idUsuario no encontrado")
         }
-        return Usuarios(idUsuario, nombreUsuario, contrasena, idRol)
+        return Usuarios(idUsuario, nombreUsuario, contrasena)
     }
+
 
     override suspend fun loginUsuario(nombreUsuario: String, contrasena: String): Usuarios? {
         return transaction {
@@ -315,6 +319,7 @@ class DAOFacadeImpl : DAOFacade {
     // Voluntario implementation
 
     private fun resultToVoluntario(row: ResultRow) = Voluntarios(
+        idVoluntario = row[Voluntario.idVoluntario],
         nombreVol = row[Voluntario.nombreVol],
         fechaNac = row[Voluntario.fechaNac],
         direccion = row[Voluntario.direccion],
@@ -324,17 +329,17 @@ class DAOFacadeImpl : DAOFacade {
         alergias = row[Voluntario.alergias],
         fechaIngreso = row[Voluntario.fechaIngreso],
         claveRadial = row[Voluntario.claveRadial],
-        cargoVoluntario = row[Voluntario.cargoVoluntario],
         rutVoluntario = row[Voluntario.rutVoluntario],
         idCompania = row[Voluntario.idCompania],
-        idUsuario = row[Voluntario.idUsuario]
+        idUsuario = row[Voluntario.idUsuario],
+        idCargo = row[Voluntario.idCargo]
     )
 
-    override suspend fun allVoluntarios(): List<Voluntarios> = dbQuery {
+    override suspend fun allVoluntarios(): List<Voluntarios> = transaction {
         Voluntario.selectAll().map(::resultToVoluntario)
     }
 
-    override suspend fun getVoluntario(idVoluntario: Int): Voluntarios? = dbQuery {
+    override suspend fun getVoluntario(idVoluntario: Int): Voluntarios? = transaction {
         Voluntario.select { Voluntario.idVoluntario eq idVoluntario }
             .mapNotNull(::resultToVoluntario)
             .singleOrNull()
@@ -350,10 +355,10 @@ class DAOFacadeImpl : DAOFacade {
         alergias: String,
         fechaIngreso: LocalDate,
         claveRadial: String,
-        cargoVoluntario: String,
         rutVoluntario: String,
         idCompania: Int,
-        idUsuario: Int?
+        idUsuario: Int?,
+        idCargo: Int
     ): Voluntarios = transaction {
         val insertStatement = Voluntario.insert {
             it[this.nombreVol] = nombreVol
@@ -365,10 +370,10 @@ class DAOFacadeImpl : DAOFacade {
             it[this.alergias] = alergias
             it[this.fechaIngreso] = fechaIngreso
             it[this.claveRadial] = claveRadial
-            it[this.cargoVoluntario] = cargoVoluntario
             it[this.rutVoluntario] = rutVoluntario
             it[this.idCompania] = idCompania
             it[this.idUsuario] = idUsuario
+            it[this.idCargo] = idCargo
         }
 
         val idVoluntario = insertStatement.resultedValues?.get(0)?.get(Voluntario.idVoluntario)
@@ -385,14 +390,14 @@ class DAOFacadeImpl : DAOFacade {
             alergias = alergias,
             fechaIngreso = fechaIngreso,
             claveRadial = claveRadial,
-            cargoVoluntario = cargoVoluntario,
             rutVoluntario = rutVoluntario,
             idCompania = idCompania,
-            idUsuario = idUsuario
+            idUsuario = idUsuario,
+            idCargo = idCargo
         )
     }
 
-    override suspend fun deleteVoluntario(idVoluntario: Int): Boolean = dbQuery {
+    override suspend fun deleteVoluntario(idVoluntario: Int): Boolean = transaction {
         Voluntario.deleteWhere { Voluntario.idVoluntario eq idVoluntario } > 0
     }
 
@@ -407,41 +412,41 @@ class DAOFacadeImpl : DAOFacade {
         alergias: String,
         fechaIngreso: LocalDate,
         claveRadial: String,
-        cargoVoluntario: String,
         rutVoluntario: String,
         idCompania: Int,
-        idUsuario: Int?
-
+        idUsuario: Int?,
+        idCargo: Int
     ): Voluntarios {
-        val rowsUpdated = dbQuery {
+        val rowsUpdated = transaction {
             Voluntario.update({ Voluntario.idVoluntario eq idVoluntario }) {
-                it[Voluntario.nombreVol] = nombreVol
-                it[Voluntario.fechaNac] = fechaNac
-                it[Voluntario.direccion] = direccion
-                it[Voluntario.numeroContacto] = numeroContacto
-                it[Voluntario.tipoSangre] = tipoSangre
-                it[Voluntario.enfermedades] = enfermedades
-                it[Voluntario.alergias] = alergias
-                it[Voluntario.fechaIngreso] = fechaIngreso
-                it[Voluntario.claveRadial] = claveRadial
-                it[Voluntario.cargoVoluntario] = cargoVoluntario
-                it[Voluntario.rutVoluntario] = rutVoluntario
-                it[Voluntario.idCompania] = idCompania
-                it[Voluntario.idUsuario] = idUsuario
+                it[this.nombreVol] = nombreVol
+                it[this.fechaNac] = fechaNac
+                it[this.direccion] = direccion
+                it[this.numeroContacto] = numeroContacto
+                it[this.tipoSangre] = tipoSangre
+                it[this.enfermedades] = enfermedades
+                it[this.alergias] = alergias
+                it[this.fechaIngreso] = fechaIngreso
+                it[this.claveRadial] = claveRadial
+                it[this.rutVoluntario] = rutVoluntario
+                it[this.idCompania] = idCompania
+                it[this.idUsuario] = idUsuario
+                it[this.idCargo] = idCargo
             }
         }
         if (rowsUpdated == 0) throw IllegalArgumentException("Voluntario con id $idVoluntario no encontrado")
-        return Voluntarios( idVoluntario, nombreVol, fechaNac, direccion, numeroContacto, tipoSangre, enfermedades, alergias, fechaIngreso, claveRadial, cargoVoluntario,rutVoluntario, idCompania, idUsuario)
+        return Voluntarios(
+            idVoluntario, nombreVol, fechaNac, direccion, numeroContacto, tipoSangre,
+            enfermedades, alergias, fechaIngreso, claveRadial, rutVoluntario, idCompania, idUsuario, idCargo
+        )
     }
 
-    suspend fun getIdVoluntarioByRut(rutVoluntario: String): Int {
-        return dbQuery {
-            Voluntario
-                .select { Voluntario.rutVoluntario eq rutVoluntario }
-                .mapNotNull { it[Voluntario.idVoluntario] }
-                .singleOrNull()
-                ?: throw IllegalArgumentException("Voluntario con rut $rutVoluntario no encontrado")
-        }
+    suspend fun getIdVoluntarioByRut(rutVoluntario: String): Int = transaction {
+        Voluntario
+            .select { Voluntario.rutVoluntario eq rutVoluntario }
+            .mapNotNull { it[Voluntario.idVoluntario] }
+            .singleOrNull()
+            ?: throw IllegalArgumentException("Voluntario con rut $rutVoluntario no encontrado")
     }
 
     // inmueble implementation
@@ -655,128 +660,109 @@ class DAOFacadeImpl : DAOFacade {
     }
 
 
-    // Emergencia implementation
+    // ClaveEmergencias implementation
 
-    private fun resultToEmergencia(row: ResultRow) = Emergencias(
-        claveEmergencia = row[Emergencia.claveEmergencia],
-        cuadrante = row[Emergencia.cuadrante],
-        direccionEmergencia = row[Emergencia.direccionEmergencia],
-        folioPEmergencia = row[Emergencia.folioPEmergencia]
+    private fun resultToClaveEmergencia(row: ResultRow) = ClaveEmergencias(
+        idClaveEmergencia = row[ClaveEmergencia.idClaveEmergencia],
+        nombreClaveEmergencia = row[ClaveEmergencia.nombreClaveEmergencia]
     )
 
-    override suspend fun allEmergencias(): List<Emergencias> = dbQuery {
-        Emergencia.selectAll().map(::resultToEmergencia)
+    override suspend fun allClaveEmergencias(): List<ClaveEmergencias> = transaction {
+        ClaveEmergencia.selectAll().map(::resultToClaveEmergencia)
     }
 
-    override suspend fun getEmergencia(idEmergencia: Int): Emergencias? = dbQuery {
-        Emergencia.select { Emergencia.idEmergencia eq idEmergencia }
-            .mapNotNull(::resultToEmergencia)
+    override suspend fun getClaveEmergencia(idClaveEmergencia: Int): ClaveEmergencias? = transaction {
+        ClaveEmergencia.select { ClaveEmergencia.idClaveEmergencia eq idClaveEmergencia }
+            .mapNotNull(::resultToClaveEmergencia)
             .singleOrNull()
     }
 
-    override suspend fun createEmergencia(
-        claveEmergencia: String,
-        cuadrante: String,
-        direccionEmergencia: String,
-        folioPEmergencia: Int
-    ): Emergencias = transaction {
-        val insertStatement = Emergencia.insert {
-            it[this.claveEmergencia] = claveEmergencia
-            it[this.cuadrante] = cuadrante
-            it[this.direccionEmergencia] = direccionEmergencia
-            it[this.folioPEmergencia] = folioPEmergencia
+    override suspend fun createClaveEmergencia(
+        nombreClaveEmergencia: String
+    ): ClaveEmergencias = transaction {
+        val insertStatement = ClaveEmergencia.insert {
+            it[this.nombreClaveEmergencia] = nombreClaveEmergencia
         }
 
-        val idEmergencia = insertStatement.resultedValues?.get(0)?.get(Emergencia.idEmergencia)
+        val idClaveEmergencia = insertStatement.resultedValues?.get(0)?.get(ClaveEmergencia.idClaveEmergencia)
             ?: throw IllegalStateException("No se pudo obtener el ID generado")
 
-        Emergencias(
-            idEmergencia = idEmergencia,
-            claveEmergencia = claveEmergencia,
-            cuadrante = cuadrante,
-            direccionEmergencia = direccionEmergencia,
-            folioPEmergencia = folioPEmergencia
+        ClaveEmergencias(
+            idClaveEmergencia = idClaveEmergencia,
+            nombreClaveEmergencia = nombreClaveEmergencia
         )
     }
 
-
-    override suspend fun deleteEmergencia(idEmergencia: Int): Boolean = transaction {
-        val rowsDeleted = Emergencia.deleteWhere { Emergencia.idEmergencia eq idEmergencia }
-        rowsDeleted > 0
+    override suspend fun deleteClaveEmergencia(idClaveEmergencia: Int): Boolean = transaction {
+        ClaveEmergencia.deleteWhere { ClaveEmergencia.idClaveEmergencia eq idClaveEmergencia } > 0
     }
 
-    override suspend fun updateEmergencia(
-        idEmergencia: Int,
-        claveEmergencia: String,
-        cuadrante: String,
-        direccionEmergencia: String,
-        folioPEmergencia: Int
-    ): Emergencias = transaction {
-        // Actualizar la emergencia en la base de datos
-        val rowsUpdated = Emergencia.update({ Emergencia.idEmergencia eq idEmergencia }) {
-            it[Emergencia.claveEmergencia] = claveEmergencia
-            it[Emergencia.cuadrante] = cuadrante
-            it[Emergencia.direccionEmergencia] = direccionEmergencia
-            it[Emergencia.folioPEmergencia] = folioPEmergencia
+    override suspend fun updateClaveEmergencia(
+        idClaveEmergencia: Int,
+        nombreClaveEmergencia: String
+    ): ClaveEmergencias = transaction {
+        val rowsUpdated = ClaveEmergencia.update({ ClaveEmergencia.idClaveEmergencia eq idClaveEmergencia }) {
+            it[this.nombreClaveEmergencia] = nombreClaveEmergencia
         }
 
-        // Si no se actualizó ningún registro, lanzar una excepción
         if (rowsUpdated == 0) {
-            throw IllegalArgumentException("Emergencia con id $idEmergencia no encontrada")
+            throw IllegalArgumentException("ClaveEmergencia con id $idClaveEmergencia no encontrada")
         }
 
-        // Retornar el objeto actualizado
-        Emergencias(idEmergencia, claveEmergencia, cuadrante, direccionEmergencia, folioPEmergencia)
+        ClaveEmergencias(idClaveEmergencia, nombreClaveEmergencia)
     }
+
 
 
     // ParteEmergencia implementation
 
     private fun resultToParteEmergencia(row: ResultRow) = Partes_emergencia(
         folioPEmergencia = row[Parte_emergencia.folioPEmergencia],
-        tipoEmergencia = row[Parte_emergencia.tipoEmergencia],
         horaInicio = row[Parte_emergencia.horaInicio],
         horaFin = row[Parte_emergencia.horaFin],
         fechaEmergencia = row[Parte_emergencia.fechaEmergencia],
         preInforme = row[Parte_emergencia.preInforme],
-        oficial = row[Parte_emergencia.oficial],
         llamarEmpresaQuimica = row[Parte_emergencia.llamarEmpresaQuimica],
         descripcionMaterialP = row[Parte_emergencia.descripcionMaterialP],
+        direccionEmergencia = row[Parte_emergencia.direccionEmergencia],
+        idOficial = row[Parte_emergencia.idOficial],
+        idClaveEmergencia = row[Parte_emergencia.idClaveEmergencia],
         folioPAsistencia = row[Parte_emergencia.folioPAsistencia]
     )
 
-
-    override suspend fun allParteEmergencias(): List<Partes_emergencia> = dbQuery {
+    override suspend fun allPartesEmergencia(): List<Partes_emergencia> = transaction {
         Parte_emergencia.selectAll().map(::resultToParteEmergencia)
     }
 
-    override suspend fun getParteEmergencia(folioPEmergencia: Int): Partes_emergencia? = dbQuery {
+    override suspend fun getParteEmergencia(folioPEmergencia: Int): Partes_emergencia? = transaction {
         Parte_emergencia.select { Parte_emergencia.folioPEmergencia eq folioPEmergencia }
             .mapNotNull(::resultToParteEmergencia)
             .singleOrNull()
     }
 
     override suspend fun createParteEmergencia(
-        tipoEmergencia: String,
         horaInicio: LocalTime,
         horaFin: LocalTime,
         fechaEmergencia: LocalDate,
         preInforme: String,
-        oficial: String,
-        llamarEmpresaQuimica: Boolean?,
+        llamarEmpresaQuimica: Boolean,
         descripcionMaterialP: String,
+        direccionEmergencia: String,
+        idOficial: Int,
+        idClaveEmergencia: Int,
         folioPAsistencia: Int?
     ): Partes_emergencia = transaction {
         val insertStatement = Parte_emergencia.insert {
-            it[Parte_emergencia.tipoEmergencia] = tipoEmergencia
-            it[Parte_emergencia.horaInicio] = horaInicio
-            it[Parte_emergencia.horaFin] = horaFin
-            it[Parte_emergencia.fechaEmergencia] = fechaEmergencia
-            it[Parte_emergencia.preInforme] = preInforme
-            it[Parte_emergencia.oficial] = oficial
-            it[Parte_emergencia.llamarEmpresaQuimica] = llamarEmpresaQuimica
-            it[Parte_emergencia.descripcionMaterialP] = descripcionMaterialP
-            it[Parte_emergencia.folioPAsistencia] = folioPAsistencia
+            it[this.horaInicio] = horaInicio
+            it[this.horaFin] = horaFin
+            it[this.fechaEmergencia] = fechaEmergencia
+            it[this.preInforme] = preInforme
+            it[this.llamarEmpresaQuimica] = llamarEmpresaQuimica
+            it[this.descripcionMaterialP] = descripcionMaterialP
+            it[this.direccionEmergencia] = direccionEmergencia
+            it[this.idOficial] = idOficial
+            it[this.idClaveEmergencia] = idClaveEmergencia
+            it[this.folioPAsistencia] = folioPAsistencia
         }
 
         val folioPEmergencia = insertStatement.resultedValues?.get(0)?.get(Parte_emergencia.folioPEmergencia)
@@ -784,67 +770,71 @@ class DAOFacadeImpl : DAOFacade {
 
         Partes_emergencia(
             folioPEmergencia = folioPEmergencia,
-            tipoEmergencia = tipoEmergencia,
             horaInicio = horaInicio,
             horaFin = horaFin,
             fechaEmergencia = fechaEmergencia,
             preInforme = preInforme,
-            oficial = oficial,
             llamarEmpresaQuimica = llamarEmpresaQuimica,
             descripcionMaterialP = descripcionMaterialP,
+            direccionEmergencia = direccionEmergencia,
+            idOficial = idOficial,
+            idClaveEmergencia = idClaveEmergencia,
             folioPAsistencia = folioPAsistencia
         )
     }
 
-    override suspend fun deleteParteEmergencia(folioPEmergencia: Int): Boolean = dbQuery {
+    override suspend fun deleteParteEmergencia(folioPEmergencia: Int): Boolean = transaction {
         Parte_emergencia.deleteWhere { Parte_emergencia.folioPEmergencia eq folioPEmergencia } > 0
     }
 
     override suspend fun updateParteEmergencia(
         folioPEmergencia: Int,
-        tipoEmergencia: String,
         horaInicio: LocalTime,
         horaFin: LocalTime,
         fechaEmergencia: LocalDate,
         preInforme: String,
-        oficial: String,
-        llamarEmpresaQuimica: Boolean?,
+        llamarEmpresaQuimica: Boolean,
         descripcionMaterialP: String,
+        direccionEmergencia: String,
+        idOficial: Int,
+        idClaveEmergencia: Int,
         folioPAsistencia: Int?
-    ): Partes_emergencia {
-        val rowsUpdated = dbQuery {
-            Parte_emergencia.update({ Parte_emergencia.folioPEmergencia eq folioPEmergencia }) {
-                it[Parte_emergencia.tipoEmergencia] = tipoEmergencia
-                it[Parte_emergencia.horaInicio] = horaInicio
-                it[Parte_emergencia.horaFin] = horaFin
-                it[Parte_emergencia.fechaEmergencia] = fechaEmergencia
-                it[Parte_emergencia.preInforme] = preInforme
-                it[Parte_emergencia.oficial] = oficial
-                it[Parte_emergencia.llamarEmpresaQuimica] = llamarEmpresaQuimica
-                it[Parte_emergencia.descripcionMaterialP] = descripcionMaterialP
-                it[Parte_emergencia.folioPAsistencia] = folioPAsistencia
-            }
+    ): Partes_emergencia = transaction {
+        val rowsUpdated = Parte_emergencia.update({ Parte_emergencia.folioPEmergencia eq folioPEmergencia }) {
+            it[this.horaInicio] = horaInicio
+            it[this.horaFin] = horaFin
+            it[this.fechaEmergencia] = fechaEmergencia
+            it[this.preInforme] = preInforme
+            it[this.llamarEmpresaQuimica] = llamarEmpresaQuimica
+            it[this.descripcionMaterialP] = descripcionMaterialP
+            it[this.direccionEmergencia] = direccionEmergencia
+            it[this.idOficial] = idOficial
+            it[this.idClaveEmergencia] = idClaveEmergencia
+            it[this.folioPAsistencia] = folioPAsistencia
         }
+
         if (rowsUpdated == 0) throw IllegalArgumentException("ParteEmergencia con folio $folioPEmergencia no encontrado")
-        return Partes_emergencia(
+
+        Partes_emergencia(
             folioPEmergencia,
-            tipoEmergencia,
             horaInicio,
             horaFin,
             fechaEmergencia,
             preInforme,
-            oficial,
             llamarEmpresaQuimica,
             descripcionMaterialP,
+            direccionEmergencia,
+            idOficial,
+            idClaveEmergencia,
             folioPAsistencia
         )
     }
 
-    //parte_asistencia implementation
+
+    // ParteAsistencia implementation
 
     private fun resultToParteAsistencia(row: ResultRow) = Partes_asistencia(
         folioPAsistencia = row[Parte_asistencia.folioPAsistencia],
-        tipoLlamado = row[Parte_asistencia.tipoLlamado],
         aCargoDelCuerpo = row[Parte_asistencia.aCargoDelCuerpo],
         aCargoDeLaCompania = row[Parte_asistencia.aCargoDeLaCompania],
         fechaAsistencia = row[Parte_asistencia.fechaAsistencia],
@@ -853,31 +843,31 @@ class DAOFacadeImpl : DAOFacade {
         direccionAsistencia = row[Parte_asistencia.direccionAsistencia],
         totalAsistencia = row[Parte_asistencia.totalAsistencia],
         observaciones = row[Parte_asistencia.observaciones],
+        idTipoLlamado = row[Parte_asistencia.idTipoLlamado]
     )
 
-    override suspend fun allParteAsistencias(): List<Partes_asistencia> = dbQuery {
+    override suspend fun allPartesAsistencia(): List<Partes_asistencia> = transaction {
         Parte_asistencia.selectAll().map(::resultToParteAsistencia)
     }
 
-    override suspend fun getParteAsistencia(folioPAsistencia: Int): Partes_asistencia? = dbQuery {
+    override suspend fun getParteAsistencia(folioPAsistencia: Int): Partes_asistencia? = transaction {
         Parte_asistencia.select { Parte_asistencia.folioPAsistencia eq folioPAsistencia }
             .mapNotNull(::resultToParteAsistencia)
             .singleOrNull()
     }
 
     override suspend fun createParteAsistencia(
-        tipoLlamado: String,
-        aCargoDelCuerpo: String,
-        aCargoDeLaCompania: String,
+        aCargoDelCuerpo: Int,
+        aCargoDeLaCompania: Int,
         fechaAsistencia: LocalDate,
         horaInicio: LocalTime,
         horaFin: LocalTime,
         direccionAsistencia: String,
         totalAsistencia: Int,
         observaciones: String,
+        idTipoLlamado: Int
     ): Partes_asistencia = transaction {
         val insertStatement = Parte_asistencia.insert {
-            it[this.tipoLlamado] = tipoLlamado
             it[this.aCargoDelCuerpo] = aCargoDelCuerpo
             it[this.aCargoDeLaCompania] = aCargoDeLaCompania
             it[this.fechaAsistencia] = fechaAsistencia
@@ -886,6 +876,7 @@ class DAOFacadeImpl : DAOFacade {
             it[this.direccionAsistencia] = direccionAsistencia
             it[this.totalAsistencia] = totalAsistencia
             it[this.observaciones] = observaciones
+            it[this.idTipoLlamado] = idTipoLlamado
         }
 
         val folioPAsistencia = insertStatement.resultedValues?.get(0)?.get(Parte_asistencia.folioPAsistencia)
@@ -893,7 +884,6 @@ class DAOFacadeImpl : DAOFacade {
 
         Partes_asistencia(
             folioPAsistencia = folioPAsistencia,
-            tipoLlamado = tipoLlamado,
             aCargoDelCuerpo = aCargoDelCuerpo,
             aCargoDeLaCompania = aCargoDeLaCompania,
             fechaAsistencia = fechaAsistencia,
@@ -902,45 +892,52 @@ class DAOFacadeImpl : DAOFacade {
             direccionAsistencia = direccionAsistencia,
             totalAsistencia = totalAsistencia,
             observaciones = observaciones,
+            idTipoLlamado = idTipoLlamado
         )
     }
 
-    // Añadir una función para verificar si existe un móvil
-    suspend fun movilExists(idMovil: Int): Boolean = transaction {
-        Movil.select { Movil.idMovil eq idMovil }.count() > 0
-    }
-
-    override suspend fun deleteParteAsistencia(folioPAsistencia: Int): Boolean = dbQuery {
+    override suspend fun deleteParteAsistencia(folioPAsistencia: Int): Boolean = transaction {
         Parte_asistencia.deleteWhere { Parte_asistencia.folioPAsistencia eq folioPAsistencia } > 0
     }
 
     override suspend fun updateParteAsistencia(
         folioPAsistencia: Int,
-        tipoLlamado: String,
-        aCargoDelCuerpo: String,
-        aCargoDeLaCompania: String,
+        aCargoDelCuerpo: Int,
+        aCargoDeLaCompania: Int,
         fechaAsistencia: LocalDate,
         horaInicio: LocalTime,
         horaFin: LocalTime,
         direccionAsistencia: String,
         totalAsistencia: Int,
         observaciones: String,
-    ): Partes_asistencia {
-        val rowsUpdated = dbQuery {
-            Parte_asistencia.update({ Parte_asistencia.folioPAsistencia eq folioPAsistencia }) {
-                it[Parte_asistencia.tipoLlamado] = tipoLlamado
-                it[Parte_asistencia.aCargoDelCuerpo] = aCargoDelCuerpo
-                it[Parte_asistencia.aCargoDeLaCompania] = aCargoDeLaCompania
-                it[Parte_asistencia.fechaAsistencia] = fechaAsistencia
-                it[Parte_asistencia.horaInicio] = horaInicio
-                it[Parte_asistencia.horaFin] = horaFin
-                it[Parte_asistencia.direccionAsistencia] = direccionAsistencia
-                it[Parte_asistencia.totalAsistencia] = totalAsistencia
-                it[Parte_asistencia.observaciones] = observaciones
-            }
+        idTipoLlamado: Int
+    ): Partes_asistencia = transaction {
+        val rowsUpdated = Parte_asistencia.update({ Parte_asistencia.folioPAsistencia eq folioPAsistencia }) {
+            it[this.aCargoDelCuerpo] = aCargoDelCuerpo
+            it[this.aCargoDeLaCompania] = aCargoDeLaCompania
+            it[this.fechaAsistencia] = fechaAsistencia
+            it[this.horaInicio] = horaInicio
+            it[this.horaFin] = horaFin
+            it[this.direccionAsistencia] = direccionAsistencia
+            it[this.totalAsistencia] = totalAsistencia
+            it[this.observaciones] = observaciones
+            it[this.idTipoLlamado] = idTipoLlamado
         }
+
         if (rowsUpdated == 0) throw IllegalArgumentException("ParteAsistencia con folio $folioPAsistencia no encontrado")
-        return Partes_asistencia(folioPAsistencia, tipoLlamado, aCargoDelCuerpo, aCargoDeLaCompania, fechaAsistencia, horaInicio, horaFin, direccionAsistencia, totalAsistencia, observaciones)
+
+        Partes_asistencia(
+            folioPAsistencia,
+            aCargoDelCuerpo,
+            aCargoDeLaCompania,
+            fechaAsistencia,
+            horaInicio,
+            horaFin,
+            direccionAsistencia,
+            totalAsistencia,
+            observaciones,
+            idTipoLlamado
+        )
     }
 
     // MaterialP implementation
@@ -996,15 +993,16 @@ class DAOFacadeImpl : DAOFacade {
     // Movil implementation
 
     private fun resultToMovil(row: ResultRow) = Moviles(
+        idMovil = row[Movil.idMovil],
         nomenclatura = row[Movil.nomenclatura],
-        especialidad = row[Movil.especialidad],
+        especialidad = row[Movil.especialidad]
     )
 
-    override suspend fun allMoviles(): List<Moviles> = dbQuery {
+    override suspend fun allMoviles(): List<Moviles> = transaction {
         Movil.selectAll().map(::resultToMovil)
     }
 
-    override suspend fun getMovil(idMovil: Int): Moviles? = dbQuery {
+    override suspend fun getMovil(idMovil: Int): Moviles? = transaction {
         Movil.select { Movil.idMovil eq idMovil }
             .mapNotNull(::resultToMovil)
             .singleOrNull()
@@ -1029,26 +1027,29 @@ class DAOFacadeImpl : DAOFacade {
         )
     }
 
-
-
-    override suspend fun deleteMovil(idMovil: Int): Boolean = dbQuery {
+    override suspend fun deleteMovil(idMovil: Int): Boolean = transaction {
         Movil.deleteWhere { Movil.idMovil eq idMovil } > 0
     }
 
     override suspend fun updateMovil(
         idMovil: Int,
         nomenclatura: String,
-        especialidad: String,
-    ): Moviles {
-        val rowsUpdated = dbQuery {
-            Movil.update({ Movil.idMovil eq idMovil }) {
-                it[Movil.nomenclatura] = nomenclatura
-                it[Movil.especialidad] = especialidad
-            }
+        especialidad: String
+    ): Moviles = transaction {
+        val rowsUpdated = Movil.update({ Movil.idMovil eq idMovil }) {
+            it[this.nomenclatura] = nomenclatura
+            it[this.especialidad] = especialidad
         }
+
         if (rowsUpdated == 0) throw IllegalArgumentException("Movil con id $idMovil no encontrado")
-        return Moviles(idMovil, nomenclatura, especialidad)
+
+        Moviles(
+            idMovil = idMovil,
+            nomenclatura = nomenclatura,
+            especialidad = especialidad
+        )
     }
+
 
     // ParteEmergenciaVoluntario implementation
     private fun resultToParteEmergenciaVoluntario(row: ResultRow) = PartesEmergenciaVoluntarios(
@@ -1318,6 +1319,105 @@ class DAOFacadeImpl : DAOFacade {
         if (rowsUpdated == 0) throw IllegalArgumentException("ParteEmergenciaMaterial con id $idparteemergenciamaterialp no encontrado")
         PartesEmergenciaMateriales(idparteemergenciamaterialp, folioPEmergencia, idMaterialP)
     }
+
+    // Cargo implementation
+
+    private fun resultToCargo(row: ResultRow) = Cargos(
+        idCargo = row[Cargo.idCargo],
+        nombreCarg = row[Cargo.nombreCarg]
+    )
+
+    override suspend fun allCargos(): List<Cargos> = transaction {
+        Cargo.selectAll().map(::resultToCargo)
+    }
+
+    override suspend fun getCargo(idCargo: Int): Cargos? = transaction {
+        Cargo.select { Cargo.idCargo eq idCargo }
+            .mapNotNull(::resultToCargo)
+            .singleOrNull()
+    }
+
+    override suspend fun createCargo(idCargo: Int, nombreCarg: String): Cargos = transaction {
+        val insertStatement = Cargo.insert {
+            it[this.idCargo] = idCargo
+            it[this.nombreCarg] = nombreCarg
+        }
+
+        val insertedId = insertStatement.resultedValues?.get(0)?.get(Cargo.idCargo)
+            ?: throw IllegalStateException("No se pudo obtener el ID insertado")
+
+        Cargos(
+            idCargo = insertedId,
+            nombreCarg = nombreCarg
+        )
+    }
+
+    override suspend fun deleteCargo(idCargo: Int): Boolean = transaction {
+        Cargo.deleteWhere { Cargo.idCargo eq idCargo } > 0
+    }
+
+    override suspend fun updateCargo(idCargo: Int, nombreCarg: String): Cargos = transaction {
+        val rowsUpdated = Cargo.update({ Cargo.idCargo eq idCargo }) {
+            it[this.nombreCarg] = nombreCarg
+        }
+
+        if (rowsUpdated == 0) throw IllegalArgumentException("Cargo con id $idCargo no encontrado")
+
+        Cargos(
+            idCargo = idCargo,
+            nombreCarg = nombreCarg
+        )
+    }
+
+
+    // TipoCitacion implementation
+
+    private fun resultToTipoCitacion(row: ResultRow) = TipoCitacion(
+        idTipoLlamado = row[Tipo_citacion.idTipoLlamado],
+        nombreTipoLlamado = row[Tipo_citacion.nombreTipoLlamado]
+    )
+
+    override suspend fun allTipoCitaciones(): List<TipoCitacion> = transaction {
+        Tipo_citacion.selectAll().map(::resultToTipoCitacion)
+    }
+
+    override suspend fun getTipoCitacion(idTipoLlamado: Int): TipoCitacion? = transaction {
+        Tipo_citacion.select { Tipo_citacion.idTipoLlamado eq idTipoLlamado }
+            .mapNotNull(::resultToTipoCitacion)
+            .singleOrNull()
+    }
+
+    override suspend fun createTipoCitacion(nombreTipoLlamado: String): TipoCitacion = transaction {
+        val insertStatement = Tipo_citacion.insert {
+            it[this.nombreTipoLlamado] = nombreTipoLlamado
+        }
+
+        val idTipoLlamado = insertStatement.resultedValues?.get(0)?.get(Tipo_citacion.idTipoLlamado)
+            ?: throw IllegalStateException("No se pudo obtener el ID insertado")
+
+        TipoCitacion(
+            idTipoLlamado = idTipoLlamado,
+            nombreTipoLlamado = nombreTipoLlamado
+        )
+    }
+
+    override suspend fun deleteTipoCitacion(idTipoLlamado: Int): Boolean = transaction {
+        Tipo_citacion.deleteWhere { Tipo_citacion.idTipoLlamado eq idTipoLlamado } > 0
+    }
+
+    override suspend fun updateTipoCitacion(idTipoLlamado: Int, nombreTipoLlamado: String): TipoCitacion = transaction {
+        val rowsUpdated = Tipo_citacion.update({ Tipo_citacion.idTipoLlamado eq idTipoLlamado }) {
+            it[this.nombreTipoLlamado] = nombreTipoLlamado
+        }
+
+        if (rowsUpdated == 0) throw IllegalArgumentException("TipoCitacion con id $idTipoLlamado no encontrado")
+
+        TipoCitacion(
+            idTipoLlamado = idTipoLlamado,
+            nombreTipoLlamado = nombreTipoLlamado
+        )
+    }
+
 
     //Funciones extras
 

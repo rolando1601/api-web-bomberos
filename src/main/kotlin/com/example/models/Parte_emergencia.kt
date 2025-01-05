@@ -10,27 +10,29 @@ import org.jetbrains.exposed.sql.kotlin.datetime.time
 @Serializable
 data class Partes_emergencia(
     val folioPEmergencia: Int? = null,
-    val tipoEmergencia: String,
     val horaInicio: LocalTime,
     val horaFin: LocalTime,
     val fechaEmergencia: LocalDate,
     val preInforme: String,
-    val oficial: String,
-    val llamarEmpresaQuimica: Boolean? ,
+    val llamarEmpresaQuimica: Boolean,
     val descripcionMaterialP: String,
+    val direccionEmergencia: String,
+    val idOficial: Int,
+    val idClaveEmergencia: Int,
     val folioPAsistencia: Int?
 )
 
 object Parte_emergencia : Table() {
     val folioPEmergencia = integer("folioPEmergencia").autoIncrement()
-    val tipoEmergencia = varchar("tipoEmergencia", 100)
     val horaInicio = time("horaInicio")
     val horaFin = time("horaFin")
     val fechaEmergencia = date("fechaEmergencia")
     val preInforme = text("preInforme")
-    val oficial = text("oficial")
-    val llamarEmpresaQuimica = bool("llamadoempresaquimica").nullable()
-    val descripcionMaterialP = text("descripcionmaterialp")
+    val llamarEmpresaQuimica = bool("llamarEmpresaQuimica")
+    val descripcionMaterialP = text("descripcionMaterialP")
+    val direccionEmergencia = varchar("direccionEmergencia", 255)
+    val idOficial = integer("idOficial").references(Voluntario.idVoluntario)
+    val idClaveEmergencia = integer("idClaveEmergencia").references(ClaveEmergencia.idClaveEmergencia)
     val folioPAsistencia = integer("folioPAsistencia").references(Parte_asistencia.folioPAsistencia).nullable()
 
     override val primaryKey = PrimaryKey(folioPEmergencia)
