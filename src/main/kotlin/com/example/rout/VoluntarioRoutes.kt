@@ -101,20 +101,14 @@ fun Route.voluntarioRoutes(dao: DAOFacadeImpl) {
         }
 
         // Actualizar un voluntario por rut
-        put("/actualizar/{rutVoluntario}") {
-            val rutVoluntario = call.parameters["rutVoluntario"]
-            if (rutVoluntario.isNullOrBlank()) {
-                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Rut del voluntario es requerido"))
+        put("/actualizar/{id}") {
+            val idVoluntario = call.parameters["id"]?.toIntOrNull()
+            if (idVoluntario == null) {
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "ID inválido"))
                 return@put
             }
             try {
                 val datosActualizados = call.receive<Voluntarios>()
-                if (rutVoluntario != datosActualizados.rutVoluntario) {
-                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to "El rut en la URL no coincide con el rut en los datos enviados"))
-                    return@put
-                }
-
-                val idVoluntario = dao.getIdVoluntarioByRut(rutVoluntario)
 
                 val voluntarioActualizado = dao.updateVoluntario(
                     idVoluntario = idVoluntario,

@@ -449,6 +449,7 @@ class DAOFacadeImpl : DAOFacade {
             ?: throw IllegalArgumentException("Voluntario con rut $rutVoluntario no encontrado")
     }
 
+
     // inmueble implementation
 
     private fun resultToInmueble(row: ResultRow) = Inmuebles(
@@ -829,6 +830,7 @@ class DAOFacadeImpl : DAOFacade {
             folioPAsistencia
         )
     }
+
 
 
     // ParteAsistencia implementation

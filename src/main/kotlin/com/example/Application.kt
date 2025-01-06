@@ -11,6 +11,9 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.routing.*
+import kotlinx.coroutines.runBlocking
+import kotlinx.datetime.toLocalDate
+import kotlinx.datetime.toLocalTime
 import kotlinx.serialization.json.Json
 
 fun main(args: Array<String>) {
@@ -20,6 +23,7 @@ fun main(args: Array<String>) {
 fun Application.module() {
     // Configura CORS
     configureCORS()
+
 
     // Configura Content Negotiation
     install(ContentNegotiation) {

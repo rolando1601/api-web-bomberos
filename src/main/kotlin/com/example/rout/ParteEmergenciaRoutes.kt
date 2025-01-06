@@ -112,5 +112,7 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
                 call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al eliminar parte de emergencia: ${e.message}"))
             }
         }
+
+
     }
 }
