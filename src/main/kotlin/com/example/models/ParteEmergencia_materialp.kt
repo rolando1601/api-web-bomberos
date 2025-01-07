@@ -11,9 +11,9 @@ data class PartesEmergenciaMateriales(
 )
 
 object ParteEmergenciaMaterial : Table() {
-    val idparteemergenciamaterialp = integer("idparteemergenciamaterialp").autoIncrement()
+    val idParteAsistenciaMaterialP = integer("idParteAsistenciaMaterialP").autoIncrement()
     val folioPEmergencia = integer("folioPEmergencia").references(Parte_emergencia.folioPEmergencia)
     val idMaterialP = integer("idMaterialP").references(MaterialP.idMaterialP)
 
-    override val primaryKey = PrimaryKey(idparteemergenciamaterialp)
+    override val primaryKey = PrimaryKey(idParteAsistenciaMaterialP)
 }

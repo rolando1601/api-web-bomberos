@@ -39,7 +39,8 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
                     direccionEmergencia = parteEmergencia.direccionEmergencia,
                     idOficial = parteEmergencia.idOficial,
                     idClaveEmergencia = parteEmergencia.idClaveEmergencia,
-                    folioPAsistencia = parteEmergencia.folioPAsistencia
+                    folioPAsistencia = parteEmergencia.folioPAsistencia,
+                    idMaterialP = parteEmergencia.idMaterialP
                 )
                 call.respond(HttpStatusCode.Created, createdParteEmergencia)
             } catch (e: Exception) {
@@ -86,7 +87,8 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
                     direccionEmergencia = parteEmergencia.direccionEmergencia,
                     idOficial = parteEmergencia.idOficial,
                     idClaveEmergencia = parteEmergencia.idClaveEmergencia,
-                    folioPAsistencia = parteEmergencia.folioPAsistencia
+                    folioPAsistencia = parteEmergencia.folioPAsistencia,
+                    idMaterialP = parteEmergencia.idMaterialP
                 )
                 call.respond(HttpStatusCode.OK, updatedParteEmergencia)
             } catch (e: Exception) {
@@ -110,6 +112,52 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
                 }
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al eliminar parte de emergencia: ${e.message}"))
+            }
+        }
+
+
+        post("/guardar") {
+            try {
+                val parteEmergencia = call.receive<Partes_emergencia>()
+
+                // Si el folioPEmergencia es nulo, se crea un nuevo registro
+                if (parteEmergencia.folioPEmergencia == null) {
+                    dao.createParteEmergencia(
+                        horaInicio = parteEmergencia.horaInicio,
+                        horaFin = parteEmergencia.horaFin,
+                        fechaEmergencia = parteEmergencia.fechaEmergencia,
+                        preInforme = parteEmergencia.preInforme,
+                        llamarEmpresaQuimica = parteEmergencia.llamarEmpresaQuimica,
+                        descripcionMaterialP = parteEmergencia.descripcionMaterialP,
+                        direccionEmergencia = parteEmergencia.direccionEmergencia,
+                        idOficial = parteEmergencia.idOficial,
+                        idClaveEmergencia = parteEmergencia.idClaveEmergencia,
+                        folioPAsistencia = parteEmergencia.folioPAsistencia,
+                        idMaterialP = parteEmergencia.idMaterialP
+                    ).also {
+                        call.respond(HttpStatusCode.Created, it)
+                    }
+                } else {
+                    // Si el folioPEmergencia existe, se actualiza el registro
+                    dao.updateParteEmergencia(
+                        folioPEmergencia = parteEmergencia.folioPEmergencia,
+                        horaInicio = parteEmergencia.horaInicio,
+                        horaFin = parteEmergencia.horaFin,
+                        fechaEmergencia = parteEmergencia.fechaEmergencia,
+                        preInforme = parteEmergencia.preInforme,
+                        llamarEmpresaQuimica = parteEmergencia.llamarEmpresaQuimica,
+                        descripcionMaterialP = parteEmergencia.descripcionMaterialP,
+                        direccionEmergencia = parteEmergencia.direccionEmergencia,
+                        idOficial = parteEmergencia.idOficial,
+                        idClaveEmergencia = parteEmergencia.idClaveEmergencia,
+                        folioPAsistencia = parteEmergencia.folioPAsistencia,
+                        idMaterialP = parteEmergencia.idMaterialP
+                    ).also {
+                        call.respond(HttpStatusCode.OK, it)
+                    }
+                }
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al guardar parte de emergencia: ${e.message}"))
             }
         }
 

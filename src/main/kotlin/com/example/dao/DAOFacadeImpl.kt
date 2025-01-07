@@ -751,8 +751,10 @@ class DAOFacadeImpl : DAOFacade {
         direccionEmergencia: String,
         idOficial: Int,
         idClaveEmergencia: Int,
-        folioPAsistencia: Int?
+        folioPAsistencia: Int?,
+        idMaterialP: Int? // Nuevo parámetro opcional
     ): Partes_emergencia = transaction {
+        // Insertar el Parte de Emergencia
         val insertStatement = Parte_emergencia.insert {
             it[this.horaInicio] = horaInicio
             it[this.horaFin] = horaFin
@@ -769,6 +771,15 @@ class DAOFacadeImpl : DAOFacade {
         val folioPEmergencia = insertStatement.resultedValues?.get(0)?.get(Parte_emergencia.folioPEmergencia)
             ?: throw IllegalStateException("No se pudo obtener el folio generado")
 
+        // Si se proporciona idMaterialP, inserta en la tabla intermedia
+        if (idMaterialP != null) {
+            ParteEmergenciaMaterial.insert {
+                it[this.folioPEmergencia] = folioPEmergencia
+                it[this.idMaterialP] = idMaterialP
+            }
+        }
+
+        // Retornar el Parte de Emergencia creado
         Partes_emergencia(
             folioPEmergencia = folioPEmergencia,
             horaInicio = horaInicio,
@@ -783,6 +794,7 @@ class DAOFacadeImpl : DAOFacade {
             folioPAsistencia = folioPAsistencia
         )
     }
+
 
     override suspend fun deleteParteEmergencia(folioPEmergencia: Int): Boolean = transaction {
         Parte_emergencia.deleteWhere { Parte_emergencia.folioPEmergencia eq folioPEmergencia } > 0
@@ -799,7 +811,8 @@ class DAOFacadeImpl : DAOFacade {
         direccionEmergencia: String,
         idOficial: Int,
         idClaveEmergencia: Int,
-        folioPAsistencia: Int?
+        folioPAsistencia: Int?,
+        idMaterialP: Int? // Nuevo parámetro opcional
     ): Partes_emergencia = transaction {
         val rowsUpdated = Parte_emergencia.update({ Parte_emergencia.folioPEmergencia eq folioPEmergencia }) {
             it[this.horaInicio] = horaInicio
@@ -813,7 +826,13 @@ class DAOFacadeImpl : DAOFacade {
             it[this.idClaveEmergencia] = idClaveEmergencia
             it[this.folioPAsistencia] = folioPAsistencia
         }
-
+        // Si se proporciona idMaterialP, inserta en la tabla intermedia
+        if (idMaterialP != null) {
+            ParteEmergenciaMaterial.update {
+                it[this.folioPEmergencia] = folioPEmergencia
+                it[this.idMaterialP] = idMaterialP
+            }
+        }
         if (rowsUpdated == 0) throw IllegalArgumentException("ParteEmergencia con folio $folioPEmergencia no encontrado")
 
         Partes_emergencia(
@@ -1214,6 +1233,20 @@ class DAOFacadeImpl : DAOFacade {
         PartesEmergenciaMoviles(idParteEmergenciaMovil, folioPEmergencia, idMovil)
     }
 
+
+    override suspend fun getParteEmergenciaMovilByFolio(folioPEmergencia: Int): List<PartesEmergenciaMoviles> = transaction {
+        ParteEmergenciaMovil
+            .select { ParteEmergenciaMovil.folioPEmergencia eq folioPEmergencia }
+            .map {
+                PartesEmergenciaMoviles(
+                    idParteEmergenciaMovil = it[ParteEmergenciaMovil.idParteEmergenciaMovil],
+                    folioPEmergencia = it[ParteEmergenciaMovil.folioPEmergencia],
+                    idMovil = it[ParteEmergenciaMovil.idMovil]
+                )
+            }
+    }
+
+
     //ParteAsistenciaMovil implementation
 
     private fun resultToParteAsistenciaMovil(row: ResultRow) = PartesAsistenciaMoviles(
@@ -1271,7 +1304,7 @@ class DAOFacadeImpl : DAOFacade {
     // ParteEmergenciaMaterial implementation
 
     private fun resultToParteEmergenciaMaterial(row: ResultRow) = PartesEmergenciaMateriales(
-        idparteemergenciamaterialp = row[ParteEmergenciaMaterial.idparteemergenciamaterialp],
+        idparteemergenciamaterialp = row[ParteEmergenciaMaterial.idParteAsistenciaMaterialP],
         folioPEmergencia = row[ParteEmergenciaMaterial.folioPEmergencia],
         idMaterialP = row[ParteEmergenciaMaterial.idMaterialP]
     )
@@ -1281,7 +1314,7 @@ class DAOFacadeImpl : DAOFacade {
     }
 
     override suspend fun getParteEmergenciaMaterial(idparteemergenciamaterialp: Int): PartesEmergenciaMateriales? = transaction {
-        ParteEmergenciaMaterial.select { ParteEmergenciaMaterial.idparteemergenciamaterialp eq idparteemergenciamaterialp }
+        ParteEmergenciaMaterial.select { ParteEmergenciaMaterial.idParteAsistenciaMaterialP eq idparteemergenciamaterialp }
             .mapNotNull(::resultToParteEmergenciaMaterial)
             .singleOrNull()
     }
@@ -1295,7 +1328,7 @@ class DAOFacadeImpl : DAOFacade {
             it[this.idMaterialP] = idMaterialP
         }
 
-        val idparteemergenciamaterialp = insertStatement.resultedValues?.get(0)?.get(ParteEmergenciaMaterial.idparteemergenciamaterialp)
+        val idparteemergenciamaterialp = insertStatement.resultedValues?.get(0)?.get(ParteEmergenciaMaterial.idParteAsistenciaMaterialP)
             ?: throw IllegalStateException("No se pudo obtener el ID del parte emergencia material generado")
 
         PartesEmergenciaMateriales(
@@ -1306,7 +1339,7 @@ class DAOFacadeImpl : DAOFacade {
     }
 
     override suspend fun deleteParteEmergenciaMaterial(idparteemergenciamaterialp: Int): Boolean = transaction {
-        ParteEmergenciaMaterial.deleteWhere { ParteEmergenciaMaterial.idparteemergenciamaterialp eq idparteemergenciamaterialp } > 0
+        ParteEmergenciaMaterial.deleteWhere { ParteEmergenciaMaterial.idParteAsistenciaMaterialP eq idparteemergenciamaterialp } > 0
     }
 
     override suspend fun updateParteEmergenciaMaterial(
@@ -1314,7 +1347,7 @@ class DAOFacadeImpl : DAOFacade {
         folioPEmergencia: Int,
         idMaterialP: Int
     ): PartesEmergenciaMateriales = transaction {
-        val rowsUpdated = ParteEmergenciaMaterial.update({ ParteEmergenciaMaterial.idparteemergenciamaterialp eq idparteemergenciamaterialp }) {
+        val rowsUpdated = ParteEmergenciaMaterial.update({ ParteEmergenciaMaterial.idParteAsistenciaMaterialP eq idparteemergenciamaterialp }) {
             it[this.folioPEmergencia] = folioPEmergencia
             it[this.idMaterialP] = idMaterialP
         }

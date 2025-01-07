@@ -97,5 +97,24 @@ fun Route.parteEmergenciaMovilRoutes(dao: DAOFacadeImpl) {
                 call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al eliminar el registro: ${e.message}"))
             }
         }
+        // Obtener registros por folioPEmergencia (GET /parte-emergencia-movil/obtener-por-folio/{folioPEmergencia})
+        get("/obtener-moviles-emergencia/{folioPEmergencia}") {
+            val folioPEmergencia = call.parameters["folioPEmergencia"]?.toIntOrNull()
+            if (folioPEmergencia == null) {
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Folio inválido o faltante."))
+                return@get
+            }
+            try {
+                val partesEmergenciaMoviles = dao.getParteEmergenciaMovilByFolio(folioPEmergencia)
+                if (partesEmergenciaMoviles.isEmpty()) {
+                    call.respond(HttpStatusCode.NotFound, mapOf("error" to "No se encontraron registros para el folio $folioPEmergencia."))
+                } else {
+                    call.respond(HttpStatusCode.OK, partesEmergenciaMoviles)
+                }
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al obtener los registros: ${e.message}"))
+            }
+        }
+
     }
 }

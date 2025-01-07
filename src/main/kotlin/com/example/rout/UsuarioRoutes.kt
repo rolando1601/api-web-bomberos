@@ -33,7 +33,7 @@ fun Route.usuarioRoutes(dao: DAOFacadeImpl) {
         }
 
         // Obtener un usuario por ID
-        get("/{id}") {
+        get("/buscar/{id}") {
             val idUsuario = call.parameters["id"]?.toIntOrNull()
             if (idUsuario == null) {
                 call.respond(HttpStatusCode.BadRequest, mapOf("error" to "ID inválido"))

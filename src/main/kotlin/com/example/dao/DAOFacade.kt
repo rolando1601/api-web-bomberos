@@ -74,9 +74,9 @@ interface DAOFacade {
     // Partes_emergencia
     suspend fun allPartesEmergencia(): List<Partes_emergencia>
     suspend fun getParteEmergencia(folioPEmergencia: Int): Partes_emergencia?
-    suspend fun createParteEmergencia(horaInicio: LocalTime, horaFin: LocalTime, fechaEmergencia: LocalDate, preInforme: String, llamarEmpresaQuimica: Boolean, descripcionMaterialP: String, direccionEmergencia: String, idOficial: Int, idClaveEmergencia: Int, folioPAsistencia: Int?): Partes_emergencia
+    suspend fun createParteEmergencia(horaInicio: LocalTime, horaFin: LocalTime, fechaEmergencia: LocalDate, preInforme: String, llamarEmpresaQuimica: Boolean, descripcionMaterialP: String, direccionEmergencia: String, idOficial: Int, idClaveEmergencia: Int, folioPAsistencia: Int?, idMaterialP: Int?): Partes_emergencia
     suspend fun deleteParteEmergencia(folioPEmergencia: Int): Boolean
-    suspend fun updateParteEmergencia(folioPEmergencia: Int, horaInicio: LocalTime, horaFin: LocalTime, fechaEmergencia: LocalDate, preInforme: String, llamarEmpresaQuimica: Boolean, descripcionMaterialP: String, direccionEmergencia: String, idOficial: Int, idClaveEmergencia: Int, folioPAsistencia: Int?): Partes_emergencia
+    suspend fun updateParteEmergencia(folioPEmergencia: Int, horaInicio: LocalTime, horaFin: LocalTime, fechaEmergencia: LocalDate, preInforme: String, llamarEmpresaQuimica: Boolean, descripcionMaterialP: String, direccionEmergencia: String, idOficial: Int, idClaveEmergencia: Int, folioPAsistencia: Int?,idMaterialP: Int?): Partes_emergencia
 
     // Partes_asistencia
     suspend fun allPartesAsistencia(): List<Partes_asistencia>
@@ -126,6 +126,7 @@ interface DAOFacade {
     suspend fun createParteEmergenciaMovil(folioPEmergencia: Int, idMovil: Int): PartesEmergenciaMoviles
     suspend fun deleteParteEmergenciaMovil(idParteEmergenciaMovil: Int): Boolean
     suspend fun updateParteEmergenciaMovil(idParteEmergenciaMovil: Int, folioPEmergencia: Int, idMovil: Int): PartesEmergenciaMoviles
+    suspend fun getParteEmergenciaMovilByFolio(folioPEmergencia: Int): List<PartesEmergenciaMoviles>
 
     // ParteEmergenciaMaterial
     suspend fun allParteEmergenciaMaterial(): List<PartesEmergenciaMateriales>
