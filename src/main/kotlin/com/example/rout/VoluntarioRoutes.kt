@@ -133,5 +133,28 @@ fun Route.voluntarioRoutes(dao: DAOFacadeImpl) {
                 call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al actualizar voluntario: ${e.message}"))
             }
         }
+
+        // Buscar un voluntario por idUsuario
+        get("/buscar-por-usuario/{idUsuario}") {
+            val idUsuario = call.parameters["idUsuario"]?.toIntOrNull()
+            if (idUsuario == null) {
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "ID de usuario inválido"))
+                return@get
+            }
+            try {
+                val voluntario = dao.getVoluntarioByIdUsuario(idUsuario)
+                if (voluntario != null) {
+                    call.respond(HttpStatusCode.OK, voluntario)
+                } else {
+                    call.respond(HttpStatusCode.NotFound, mapOf("error" to "No se encontró un voluntario con el idUsuario proporcionado"))
+                }
+            } catch (e: Exception) {
+                call.respond(
+                    HttpStatusCode.InternalServerError,
+                    mapOf("error" to "Error al buscar voluntario: ${e.message}")
+                )
+            }
+        }
+
     }
 }

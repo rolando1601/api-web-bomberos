@@ -448,6 +448,11 @@ class DAOFacadeImpl : DAOFacade {
             .singleOrNull()
             ?: throw IllegalArgumentException("Voluntario con rut $rutVoluntario no encontrado")
     }
+    override suspend fun getVoluntarioByIdUsuario(idUsuario: Int): Voluntarios? = transaction {
+        Voluntario.select { Voluntario.idUsuario eq idUsuario }
+            .mapNotNull(::resultToVoluntario)
+            .singleOrNull()
+    }
 
 
     // inmueble implementation
@@ -1125,6 +1130,31 @@ class DAOFacadeImpl : DAOFacade {
         PartesEmergenciaVoluntarios(idParteVoluntario, folioPEmergencia, idVoluntario)
     }
 
+    override suspend fun getVoluntariosPorParteEmergencia(folioPEmergencia: Int): List<Voluntarios> = transaction {
+        (ParteEmergenciaVoluntario innerJoin Voluntario)
+            .select { ParteEmergenciaVoluntario.folioPEmergencia eq folioPEmergencia }
+            .map { row ->
+                Voluntarios(
+                    idVoluntario = row[Voluntario.idVoluntario],
+                    nombreVol = row[Voluntario.nombreVol],
+                    fechaNac = row[Voluntario.fechaNac],
+                    direccion = row[Voluntario.direccion],
+                    numeroContacto = row[Voluntario.numeroContacto],
+                    tipoSangre = row[Voluntario.tipoSangre],
+                    enfermedades = row[Voluntario.enfermedades],
+                    alergias = row[Voluntario.alergias],
+                    fechaIngreso = row[Voluntario.fechaIngreso],
+                    claveRadial = row[Voluntario.claveRadial],
+                    rutVoluntario = row[Voluntario.rutVoluntario],
+                    idCompania = row[Voluntario.idCompania],
+                    idUsuario = row[Voluntario.idUsuario],
+                    idCargo = row[Voluntario.idCargo]
+                )
+            }
+    }
+
+
+
     // ParteAsistenciaVoluntario implementation
 
     private fun resultToParteAsistenciaVoluntario(row: ResultRow) = PartesAsistenciaVoluntarios(
@@ -1242,6 +1272,18 @@ class DAOFacadeImpl : DAOFacade {
                     idParteEmergenciaMovil = it[ParteEmergenciaMovil.idParteEmergenciaMovil],
                     folioPEmergencia = it[ParteEmergenciaMovil.folioPEmergencia],
                     idMovil = it[ParteEmergenciaMovil.idMovil]
+                )
+            }
+    }
+
+    override suspend fun getMovilesPorParteEmergencia(folioPEmergencia: Int): List<Moviles> = transaction {
+        (ParteEmergenciaMovil innerJoin Movil)
+            .select { ParteEmergenciaMovil.folioPEmergencia eq folioPEmergencia }
+            .map { row ->
+                Moviles(
+                    idMovil = row[Movil.idMovil],
+                    nomenclatura = row[Movil.nomenclatura],
+                    especialidad = row[Movil.especialidad]
                 )
             }
     }

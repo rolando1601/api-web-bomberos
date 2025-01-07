@@ -115,6 +115,23 @@ fun Route.parteEmergenciaMovilRoutes(dao: DAOFacadeImpl) {
                 call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al obtener los registros: ${e.message}"))
             }
         }
+        get("/moviles-asistencia/{folioPEmergencia}") {
+            val folioPEmergencia = call.parameters["folioPEmergencia"]?.toIntOrNull()
+            if (folioPEmergencia == null) {
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Folio de parte de emergencia inválido o faltante."))
+                return@get
+            }
+            try {
+                val moviles = dao.getMovilesPorParteEmergencia(folioPEmergencia)
+                if (moviles.isEmpty()) {
+                    call.respond(HttpStatusCode.NotFound, mapOf("error" to "No se encontraron móviles para el folio $folioPEmergencia."))
+                } else {
+                    call.respond(HttpStatusCode.OK, moviles)
+                }
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al obtener los móviles: ${e.message}"))
+            }
+        }
 
     }
 }

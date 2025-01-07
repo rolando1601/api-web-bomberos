@@ -97,5 +97,22 @@ fun Route.parteEmergenciaVoluntarioRoutes(dao: DAOFacadeImpl) {
                 call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al eliminar el registro: ${e.message}"))
             }
         }
+        // Obtener voluntarios por folio de parte de emergencia (GET /parte-emergencia-voluntario/voluntarios/{folioPEmergencia})
+        get("/voluntarios-presentes/{folioPEmergencia}") {
+            val folioPEmergencia = call.parameters["folioPEmergencia"]?.toIntOrNull()
+            if (folioPEmergencia == null) {
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Folio de parte de emergencia inválido o faltante."))
+                return@get
+            }
+            try {
+                val voluntarios = dao.getVoluntariosPorParteEmergencia(folioPEmergencia)
+                call.respond(HttpStatusCode.OK, voluntarios)
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al obtener los voluntarios: ${e.message}"))
+            }
+        }
+
+
+
     }
 }
