@@ -129,7 +129,7 @@ fun Route.voluntarioRoutes(dao: DAOFacadeImpl) {
             } catch (e: Exception) {
                 call.respond(
                     HttpStatusCode.InternalServerError,
-                    mapOf("error" to "Error al eliminar voluntario: ${e.message}")
+                    mapOf("error" to "Error al eliminar voluntario, por que se registra en un parte de emergencia o asistencia donde participó")
                 )
             }
         }
