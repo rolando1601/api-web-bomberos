@@ -1,6 +1,7 @@
 package com.example.routes
 
 import com.example.dao.DAOFacadeImpl
+import com.example.models.VoluntarioResponse
 import com.example.models.Voluntarios
 import io.ktor.http.*
 import io.ktor.server.request.*
@@ -12,7 +13,10 @@ fun Route.voluntarioRoutes(dao: DAOFacadeImpl) {
 
         // Ruta base
         get {
-            call.respond(HttpStatusCode.OK, "Ruta base de Voluntarios. Usa /crear, /obtener, /actualizar, /eliminar o /buscar para más acciones.")
+            call.respond(
+                HttpStatusCode.OK,
+                "Ruta base de Voluntarios. Usa /crear, /obtener, /actualizar, /eliminar o /buscar para más acciones."
+            )
         }
 
         // Obtener todos los voluntarios
@@ -28,7 +32,6 @@ fun Route.voluntarioRoutes(dao: DAOFacadeImpl) {
             }
         }
 
-        // Buscar un voluntario por ID
         get("/buscar/{id}") {
             val idVoluntario = call.parameters["id"]?.toIntOrNull()
             if (idVoluntario == null) {
@@ -36,12 +39,38 @@ fun Route.voluntarioRoutes(dao: DAOFacadeImpl) {
                 return@get
             }
             try {
+                // Obtiene el voluntario y sus relaciones
                 val voluntario = dao.getVoluntario(idVoluntario)
                 if (voluntario != null) {
-                    call.respond(HttpStatusCode.OK, voluntario)
+                    val (compania, usuario, cargo) = dao.getVoluntarioWithRelations(idVoluntario)
+                    val response = VoluntarioResponse(
+                        idVoluntario = voluntario.idVoluntario,
+                        nombreVol = voluntario.nombreVol,
+                        fechaNac = voluntario.fechaNac,
+                        direccion = voluntario.direccion,
+                        numeroContacto = voluntario.numeroContacto,
+                        tipoSangre = voluntario.tipoSangre,
+                        enfermedades = voluntario.enfermedades,
+                        alergias = voluntario.alergias,
+                        fechaIngreso = voluntario.fechaIngreso,
+                        claveRadial = voluntario.claveRadial,
+                        rutVoluntario = voluntario.rutVoluntario,
+                        idCompania = voluntario.idCompania,
+                        idUsuario = voluntario.idUsuario,
+                        idCargo = voluntario.idCargo,
+                        apellidop = voluntario.apellidop,
+                        apellidom = voluntario.apellidom,
+                        compania = compania,
+                        usuario = usuario,
+                        cargo = cargo,
+                        activo = voluntario.activo
+                    )
+                    call.respond(HttpStatusCode.OK, response)
                 } else {
                     call.respond(HttpStatusCode.NotFound, mapOf("error" to "Voluntario no encontrado"))
                 }
+            } catch (e: IllegalArgumentException) {
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to e.message))
             } catch (e: Exception) {
                 call.respond(
                     HttpStatusCode.InternalServerError,
@@ -49,6 +78,8 @@ fun Route.voluntarioRoutes(dao: DAOFacadeImpl) {
                 )
             }
         }
+
+
 
         // Crear un nuevo voluntario
         post("/crear") {
@@ -67,7 +98,10 @@ fun Route.voluntarioRoutes(dao: DAOFacadeImpl) {
                     rutVoluntario = nuevoVoluntario.rutVoluntario,
                     idCompania = nuevoVoluntario.idCompania,
                     idUsuario = nuevoVoluntario.idUsuario,
-                    idCargo = nuevoVoluntario.idCargo
+                    idCargo = nuevoVoluntario.idCargo,
+                    apellidop = nuevoVoluntario.apellidop,
+                    apellidom = nuevoVoluntario.apellidom,
+                    activo = nuevoVoluntario.activo
                 )
                 call.respond(HttpStatusCode.Created, voluntarioCreado)
             } catch (e: Exception) {
@@ -124,13 +158,19 @@ fun Route.voluntarioRoutes(dao: DAOFacadeImpl) {
                     rutVoluntario = datosActualizados.rutVoluntario,
                     idCompania = datosActualizados.idCompania,
                     idUsuario = datosActualizados.idUsuario,
-                    idCargo = datosActualizados.idCargo
+                    idCargo = datosActualizados.idCargo,
+                    apellidop = datosActualizados.apellidop,
+                    apellidom = datosActualizados.apellidom,
+                    activo = datosActualizados.activo
                 )
                 call.respond(HttpStatusCode.OK, voluntarioActualizado)
             } catch (e: IllegalArgumentException) {
                 call.respond(HttpStatusCode.NotFound, mapOf("error" to e.message))
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al actualizar voluntario: ${e.message}"))
+                call.respond(
+                    HttpStatusCode.InternalServerError,
+                    mapOf("error" to "Error al actualizar voluntario: ${e.message}")
+                )
             }
         }
 
@@ -146,7 +186,10 @@ fun Route.voluntarioRoutes(dao: DAOFacadeImpl) {
                 if (voluntario != null) {
                     call.respond(HttpStatusCode.OK, voluntario)
                 } else {
-                    call.respond(HttpStatusCode.NotFound, mapOf("error" to "No se encontró un voluntario con el idUsuario proporcionado"))
+                    call.respond(
+                        HttpStatusCode.NotFound,
+                        mapOf("error" to "No se encontró un voluntario con el idUsuario proporcionado")
+                    )
                 }
             } catch (e: Exception) {
                 call.respond(
@@ -155,6 +198,89 @@ fun Route.voluntarioRoutes(dao: DAOFacadeImpl) {
                 )
             }
         }
+
+
+        post("/guardar") {
+            try {
+                val voluntario = call.receive<Voluntarios>()
+
+                val resultado = if (voluntario.idVoluntario == null) {
+                    dao.createVoluntario(
+                        nombreVol = voluntario.nombreVol,
+                        fechaNac = voluntario.fechaNac,
+                        direccion = voluntario.direccion,
+                        numeroContacto = voluntario.numeroContacto,
+                        tipoSangre = voluntario.tipoSangre,
+                        enfermedades = voluntario.enfermedades,
+                        alergias = voluntario.alergias,
+                        fechaIngreso = voluntario.fechaIngreso,
+                        claveRadial = voluntario.claveRadial,
+                        rutVoluntario = voluntario.rutVoluntario,
+                        idCompania = voluntario.idCompania,
+                        idUsuario = voluntario.idUsuario,
+                        idCargo = voluntario.idCargo,
+                        apellidop = voluntario.apellidop,
+                        apellidom = voluntario.apellidom,
+                        activo = voluntario.activo
+                    )
+                } else {
+                    println("voluntatio existente" + voluntario.idVoluntario)
+                    dao.updateVoluntario(
+                        idVoluntario = voluntario.idVoluntario,
+                        nombreVol = voluntario.nombreVol,
+                        fechaNac = voluntario.fechaNac,
+                        direccion = voluntario.direccion,
+                        numeroContacto = voluntario.numeroContacto,
+                        tipoSangre = voluntario.tipoSangre,
+                        enfermedades = voluntario.enfermedades,
+                        alergias = voluntario.alergias,
+                        fechaIngreso = voluntario.fechaIngreso,
+                        claveRadial = voluntario.claveRadial,
+                        rutVoluntario = voluntario.rutVoluntario,
+                        idCompania = voluntario.idCompania,
+                        idUsuario = voluntario.idUsuario,
+                        idCargo = voluntario.idCargo,
+                        apellidop = voluntario.apellidop,
+                        apellidom = voluntario.apellidom,
+                        activo = voluntario.activo
+                    )
+                }
+
+                val ( compania, usuario, cargo) = dao.getVoluntarioWithRelations(resultado.idVoluntario!!)
+                val response = VoluntarioResponse(
+                    idVoluntario = voluntario.idVoluntario,
+                    nombreVol = voluntario.nombreVol,
+                    fechaNac = voluntario.fechaNac,
+                    direccion = voluntario.direccion,
+                    numeroContacto = voluntario.numeroContacto,
+                    tipoSangre = voluntario.tipoSangre,
+                    enfermedades = voluntario.enfermedades,
+                    alergias = voluntario.alergias,
+                    fechaIngreso = voluntario.fechaIngreso,
+                    claveRadial = voluntario.claveRadial,
+                    rutVoluntario = voluntario.rutVoluntario,
+                    idCompania = voluntario.idCompania,
+                    idUsuario = voluntario.idUsuario,
+                    idCargo = voluntario.idCargo,
+                    apellidop = voluntario.apellidop,
+                    apellidom = voluntario.apellidom,
+                    compania = compania,
+                    usuario = usuario,
+                    cargo = cargo,
+                    activo = voluntario.activo
+                )
+                call.respond(HttpStatusCode.OK, response)
+            } catch (e: IllegalArgumentException) {
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to e.message))
+            } catch (e: Exception) {
+                call.respond(
+                    HttpStatusCode.InternalServerError,
+                    mapOf("error" to "Error al guardar voluntario: ${e.message}")
+                )
+            }
+        }
+
+
 
     }
 }

@@ -125,5 +125,48 @@ fun Route.parteAsistenciaRoutes(dao: DAOFacadeImpl) {
                 )
             }
         }
+        // Guardar un parte de asistencia (crear o actualizar)
+        post("/guardar") {
+            try {
+                val parteAsistencia = call.receive<Partes_asistencia>()
+
+                // Si el folioPAsistencia es nulo, se crea un nuevo registro
+                if (parteAsistencia.folioPAsistencia == null) {
+                    val createdParteAsistencia = dao.createParteAsistencia(
+                        aCargoDelCuerpo = parteAsistencia.aCargoDelCuerpo,
+                        aCargoDeLaCompania = parteAsistencia.aCargoDeLaCompania,
+                        fechaAsistencia = parteAsistencia.fechaAsistencia,
+                        horaInicio = parteAsistencia.horaInicio,
+                        horaFin = parteAsistencia.horaFin,
+                        direccionAsistencia = parteAsistencia.direccionAsistencia,
+                        totalAsistencia = parteAsistencia.totalAsistencia,
+                        observaciones = parteAsistencia.observaciones,
+                        idTipoLlamado = parteAsistencia.idTipoLlamado
+                    )
+                    call.respond(HttpStatusCode.Created, createdParteAsistencia)
+                } else {
+                    // Si el folioPAsistencia existe, se actualiza el registro
+                    val updatedParteAsistencia = dao.updateParteAsistencia(
+                        folioPAsistencia = parteAsistencia.folioPAsistencia,
+                        aCargoDelCuerpo = parteAsistencia.aCargoDelCuerpo,
+                        aCargoDeLaCompania = parteAsistencia.aCargoDeLaCompania,
+                        fechaAsistencia = parteAsistencia.fechaAsistencia,
+                        horaInicio = parteAsistencia.horaInicio,
+                        horaFin = parteAsistencia.horaFin,
+                        direccionAsistencia = parteAsistencia.direccionAsistencia,
+                        totalAsistencia = parteAsistencia.totalAsistencia,
+                        observaciones = parteAsistencia.observaciones,
+                        idTipoLlamado = parteAsistencia.idTipoLlamado
+                    )
+                    call.respond(HttpStatusCode.OK, updatedParteAsistencia)
+                }
+            } catch (e: Exception) {
+                call.respond(
+                    HttpStatusCode.InternalServerError,
+                    mapOf("error" to "Error al guardar parte de asistencia: ${e.message}")
+                )
+            }
+        }
+
     }
 }

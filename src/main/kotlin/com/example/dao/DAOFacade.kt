@@ -38,10 +38,12 @@ interface DAOFacade {
     // Voluntarios
     suspend fun allVoluntarios(): List<Voluntarios>
     suspend fun getVoluntario(idVoluntario: Int): Voluntarios?
-    suspend fun createVoluntario(nombreVol: String, fechaNac: LocalDate, direccion: String, numeroContacto: String, tipoSangre: String, enfermedades: String, alergias: String, fechaIngreso: LocalDate, claveRadial: String, rutVoluntario: String, idCompania: Int, idUsuario: Int?, idCargo: Int): Voluntarios
+    suspend fun createVoluntario(nombreVol: String, fechaNac: LocalDate, direccion: String, numeroContacto: String, tipoSangre: String, enfermedades: String, alergias: String, fechaIngreso: LocalDate, claveRadial: String, rutVoluntario: String, idCompania: Int, idUsuario: Int?, idCargo: Int, apellidop: String, apellidom: String, activo: Boolean): Voluntarios
     suspend fun deleteVoluntario(idVoluntario: Int): Boolean
-    suspend fun updateVoluntario(idVoluntario: Int, nombreVol: String, fechaNac: LocalDate, direccion: String, numeroContacto: String, tipoSangre: String, enfermedades: String, alergias: String, fechaIngreso: LocalDate, claveRadial: String, rutVoluntario: String, idCompania: Int, idUsuario: Int?, idCargo: Int): Voluntarios
+    suspend fun updateVoluntario(idVoluntario: Int, nombreVol: String, fechaNac: LocalDate, direccion: String, numeroContacto: String, tipoSangre: String, enfermedades: String, alergias: String, fechaIngreso: LocalDate, claveRadial: String, rutVoluntario: String, idCompania: Int, idUsuario: Int?, idCargo: Int, apellidop: String, apellidom: String, activo: Boolean): Voluntarios
     suspend fun getVoluntarioByIdUsuario(idUsuario: Int): Voluntarios?
+    // Extensión: Obtiene un voluntario con sus relaciones (Compañía, Usuario, Cargo)
+    suspend fun getVoluntarioWithRelations(idVoluntario: Int): Triple< Companias?, Usuarios?, Cargos?>
 
     // Inmueble
     suspend fun allInmuebles(): List<Inmuebles>

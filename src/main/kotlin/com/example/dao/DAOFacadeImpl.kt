@@ -332,7 +332,10 @@ class DAOFacadeImpl : DAOFacade {
         rutVoluntario = row[Voluntario.rutVoluntario],
         idCompania = row[Voluntario.idCompania],
         idUsuario = row[Voluntario.idUsuario],
-        idCargo = row[Voluntario.idCargo]
+        idCargo = row[Voluntario.idCargo],
+        apellidop = row[Voluntario.apellidop],
+        apellidom = row[Voluntario.apellidom],
+        activo = row[Voluntario.activo]
     )
 
     override suspend fun allVoluntarios(): List<Voluntarios> = transaction {
@@ -358,7 +361,10 @@ class DAOFacadeImpl : DAOFacade {
         rutVoluntario: String,
         idCompania: Int,
         idUsuario: Int?,
-        idCargo: Int
+        idCargo: Int,
+        apellidop: String,
+        apellidom: String,
+        activo: Boolean
     ): Voluntarios = transaction {
         val insertStatement = Voluntario.insert {
             it[this.nombreVol] = nombreVol
@@ -374,6 +380,9 @@ class DAOFacadeImpl : DAOFacade {
             it[this.idCompania] = idCompania
             it[this.idUsuario] = idUsuario
             it[this.idCargo] = idCargo
+            it[this.apellidop] = apellidop
+            it[this.apellidom] = apellidom
+            it[this.activo] = activo
         }
 
         val idVoluntario = insertStatement.resultedValues?.get(0)?.get(Voluntario.idVoluntario)
@@ -393,7 +402,10 @@ class DAOFacadeImpl : DAOFacade {
             rutVoluntario = rutVoluntario,
             idCompania = idCompania,
             idUsuario = idUsuario,
-            idCargo = idCargo
+            idCargo = idCargo,
+            apellidop = apellidop,
+            apellidom = apellidom,
+            activo = activo
         )
     }
 
@@ -415,7 +427,10 @@ class DAOFacadeImpl : DAOFacade {
         rutVoluntario: String,
         idCompania: Int,
         idUsuario: Int?,
-        idCargo: Int
+        idCargo: Int,
+        apellidop: String,
+        apellidom: String,
+        activo: Boolean
     ): Voluntarios {
         val rowsUpdated = transaction {
             Voluntario.update({ Voluntario.idVoluntario eq idVoluntario }) {
@@ -432,12 +447,30 @@ class DAOFacadeImpl : DAOFacade {
                 it[this.idCompania] = idCompania
                 it[this.idUsuario] = idUsuario
                 it[this.idCargo] = idCargo
+                it[this.apellidop] = apellidop
+                it[this.apellidom] = apellidom
+                it[this.activo] = activo
             }
         }
         if (rowsUpdated == 0) throw IllegalArgumentException("Voluntario con id $idVoluntario no encontrado")
         return Voluntarios(
-            idVoluntario, nombreVol, fechaNac, direccion, numeroContacto, tipoSangre,
-            enfermedades, alergias, fechaIngreso, claveRadial, rutVoluntario, idCompania, idUsuario, idCargo
+            idVoluntario = idVoluntario,
+            nombreVol = nombreVol,
+            fechaNac = fechaNac,
+            direccion = direccion,
+            numeroContacto = numeroContacto,
+            tipoSangre = tipoSangre,
+            enfermedades = enfermedades,
+            alergias = alergias,
+            fechaIngreso = fechaIngreso,
+            claveRadial = claveRadial,
+            rutVoluntario = rutVoluntario,
+            idCompania = idCompania,
+            idUsuario = idUsuario,
+            idCargo = idCargo,
+            apellidop = apellidop,
+            apellidom = apellidom,
+            activo = activo
         )
     }
 
@@ -452,6 +485,23 @@ class DAOFacadeImpl : DAOFacade {
         Voluntario.select { Voluntario.idUsuario eq idUsuario }
             .mapNotNull(::resultToVoluntario)
             .singleOrNull()
+    }
+
+    // VoluntarioWithRelations implementation
+    override suspend fun getVoluntarioWithRelations(idVoluntario: Int): Triple<Companias?, Usuarios?, Cargos?> {
+        // Primero obtiene el voluntario dentro de un bloque transaction
+        val voluntario = transaction {
+            Voluntario.select { Voluntario.idVoluntario eq idVoluntario }
+                .singleOrNull()?.let { resultToVoluntario(it) } // Aseguramos que resultToVoluntario se invoque correctamente
+        } ?: throw IllegalArgumentException("Voluntario con ID $idVoluntario no encontrado")
+
+        // Llama a las funciones suspendidas fuera del bloque transaction
+        val compania = voluntario.idCompania.let { getCompania(it) } // let es seguro porque idCompania es no nulo
+        val usuario = voluntario.idUsuario?.let { getUsuario(it) } // Esto maneja el caso donde idUsuario sea nulo
+        val cargo = voluntario.idCargo.let { getCargo(it) }
+
+        // Retorna las relaciones
+        return Triple(compania, usuario, cargo)
     }
 
 
@@ -1148,7 +1198,12 @@ class DAOFacadeImpl : DAOFacade {
                     rutVoluntario = row[Voluntario.rutVoluntario],
                     idCompania = row[Voluntario.idCompania],
                     idUsuario = row[Voluntario.idUsuario],
-                    idCargo = row[Voluntario.idCargo]
+                    idCargo = row[Voluntario.idCargo],
+                    apellidop = row[Voluntario.apellidop],
+                    apellidom = row[Voluntario.apellidom],
+                    activo = row[Voluntario.activo]
+
+
                 )
             }
     }

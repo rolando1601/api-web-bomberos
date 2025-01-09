@@ -20,8 +20,55 @@ data class Voluntarios(
     val rutVoluntario: String,
     val idCompania: Int,
     val idUsuario: Int?,
-    val idCargo: Int
-)
+    val idCargo: Int,
+    val apellidop: String,
+    val apellidom: String,
+    val compania: Companias? = null,
+    val usuario: Usuarios? = null,
+    val cargo: Cargos? = null,
+    val activo: Boolean
+) {
+    constructor(
+        idVoluntario: Int? = null,
+        nombreVol: String,
+        fechaNac: LocalDate,
+        direccion: String,
+        numeroContacto: String,
+        tipoSangre: String,
+        enfermedades: String,
+        alergias: String,
+        fechaIngreso: LocalDate,
+        claveRadial: String,
+        rutVoluntario: String,
+        compania: Companias,
+        usuario: Usuarios?,
+        cargo: Cargos,
+        apellidop: String,
+        apellidom: String,
+        activo: Boolean
+    ) : this(
+        idVoluntario = idVoluntario,
+        nombreVol = nombreVol,
+        fechaNac = fechaNac,
+        direccion = direccion,
+        numeroContacto = numeroContacto,
+        tipoSangre = tipoSangre,
+        enfermedades = enfermedades,
+        alergias = alergias,
+        fechaIngreso = fechaIngreso,
+        claveRadial = claveRadial,
+        rutVoluntario = rutVoluntario,
+        idCompania = compania.idCompania!!,
+        idUsuario = usuario?.idUsuario,
+        idCargo = cargo.idCargo,
+        apellidop = apellidop,
+        apellidom = apellidom,
+        compania = compania,
+        usuario = usuario,
+        cargo = cargo,
+        activo = activo
+    )
+}
 
 object Voluntario : Table() {
     val idVoluntario = integer("idVoluntario").autoIncrement()
@@ -38,6 +85,9 @@ object Voluntario : Table() {
     val idCompania = integer("idCompania").references(Compania.idCompania)
     val idUsuario = integer("idUsuario").references(Usuario.idUsuario).nullable()
     val idCargo = integer("idCargo").references(Cargo.idCargo)
+    val apellidop = varchar("apellidop", 255)
+    val apellidom = varchar("apellidom", 255)
+    val activo = bool("activo").default(true)
 
     override val primaryKey = PrimaryKey(idVoluntario)
 
