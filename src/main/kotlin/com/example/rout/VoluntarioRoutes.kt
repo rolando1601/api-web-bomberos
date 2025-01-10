@@ -174,7 +174,6 @@ fun Route.voluntarioRoutes(dao: DAOFacadeImpl) {
             }
         }
 
-        // Buscar un voluntario por idUsuario
         get("/buscar-por-usuario/{idUsuario}") {
             val idUsuario = call.parameters["idUsuario"]?.toIntOrNull()
             if (idUsuario == null) {
@@ -182,9 +181,36 @@ fun Route.voluntarioRoutes(dao: DAOFacadeImpl) {
                 return@get
             }
             try {
+                // Obtén el voluntario por ID de usuario
                 val voluntario = dao.getVoluntarioByIdUsuario(idUsuario)
                 if (voluntario != null) {
-                    call.respond(HttpStatusCode.OK, voluntario)
+                    // Obtén las relaciones del voluntario
+                    val (compania, usuario, cargo) = dao.getVoluntarioWithRelations(voluntario.idVoluntario!!)
+
+                    // Construye la respuesta
+                    val response = VoluntarioResponse(
+                        idVoluntario = voluntario.idVoluntario,
+                        nombreVol = voluntario.nombreVol,
+                        fechaNac = voluntario.fechaNac,
+                        direccion = voluntario.direccion,
+                        numeroContacto = voluntario.numeroContacto,
+                        tipoSangre = voluntario.tipoSangre,
+                        enfermedades = voluntario.enfermedades,
+                        alergias = voluntario.alergias,
+                        fechaIngreso = voluntario.fechaIngreso,
+                        claveRadial = voluntario.claveRadial,
+                        rutVoluntario = voluntario.rutVoluntario,
+                        idCompania = voluntario.idCompania,
+                        idUsuario = voluntario.idUsuario,
+                        idCargo = voluntario.idCargo,
+                        apellidop = voluntario.apellidop,
+                        apellidom = voluntario.apellidom,
+                        compania = compania,
+                        usuario = usuario,
+                        cargo = cargo,
+                        activo = voluntario.activo
+                    )
+                    call.respond(HttpStatusCode.OK, response)
                 } else {
                     call.respond(
                         HttpStatusCode.NotFound,
@@ -198,6 +224,7 @@ fun Route.voluntarioRoutes(dao: DAOFacadeImpl) {
                 )
             }
         }
+
 
 
         post("/guardar") {

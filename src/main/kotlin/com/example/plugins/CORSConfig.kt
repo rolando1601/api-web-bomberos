@@ -8,7 +8,7 @@ fun Application.configureCORS() {
     install(CORS) {
         anyHost()  // Permite cualquier host (útil si tu API es accesible desde cualquier dominio)
         allowHost("localhost", schemes = listOf("http", "https")) // Permite localhost con cualquier esquema (HTTP o HTTPS)
-        allowHost("80bd730667f2.ngrok.app", schemes = listOf("http", "https")) // ngrok, permitiendo ambos esquemas
+        allowHost("6b02ff3e2a46.ngrok.app", schemes = listOf("http", "https")) // ngrok, permitiendo ambos esquemas
         allowMethod(HttpMethod.Options)
         allowMethod(HttpMethod.Get)
         allowMethod(HttpMethod.Post)

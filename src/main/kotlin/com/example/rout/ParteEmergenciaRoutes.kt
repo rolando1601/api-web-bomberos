@@ -115,7 +115,7 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
             }
         }
 
-
+        // Ruta para guardar un parte de emergencia
         post("/guardar") {
             try {
                 val parteEmergencia = call.receive<Partes_emergencia>()
