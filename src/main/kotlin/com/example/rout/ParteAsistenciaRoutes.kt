@@ -68,7 +68,9 @@ fun Route.parteAsistenciaRoutes(dao: DAOFacadeImpl) {
                     val response = ParteAsistenciaResponse(
                         folioPAsistencia = partesAsistencia.folioPAsistencia,
                         aCargoDelCuerpo = partesAsistencia.aCargoDelCuerpo,
+                        encargadoCuerpo = dao.getVoluntario(partesAsistencia.aCargoDelCuerpo),
                         aCargoDeLaCompania = partesAsistencia.aCargoDeLaCompania,
+                        encargadoCompania = dao.getVoluntario(partesAsistencia.aCargoDeLaCompania),
                         fechaAsistencia = partesAsistencia.fechaAsistencia,
                         horaInicio = partesAsistencia.horaInicio,
                         horaFin = partesAsistencia.horaFin,
@@ -93,24 +95,6 @@ fun Route.parteAsistenciaRoutes(dao: DAOFacadeImpl) {
                 )
             }
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         // Actualizar un parte de asistencia
         put("/actualizar/{folioPAsistencia}") {
@@ -167,10 +151,8 @@ fun Route.parteAsistenciaRoutes(dao: DAOFacadeImpl) {
         post("/guardar") {
             try {
                 val parteAsistencia = call.receive<Partes_asistencia>()
-
-                // Si el folioPAsistencia es nulo, se crea un nuevo registro
-                if (parteAsistencia.folioPAsistencia == null) {
-                    val createdParteAsistencia = dao.createParteAsistencia(
+                val resultado = if (parteAsistencia.folioPAsistencia == null) {
+                    dao.createParteAsistencia(
                         aCargoDelCuerpo = parteAsistencia.aCargoDelCuerpo,
                         aCargoDeLaCompania = parteAsistencia.aCargoDeLaCompania,
                         fechaAsistencia = parteAsistencia.fechaAsistencia,
@@ -181,10 +163,8 @@ fun Route.parteAsistenciaRoutes(dao: DAOFacadeImpl) {
                         observaciones = parteAsistencia.observaciones,
                         idTipoLlamado = parteAsistencia.idTipoLlamado
                     )
-                    call.respond(HttpStatusCode.Created, createdParteAsistencia)
                 } else {
-                    // Si el folioPAsistencia existe, se actualiza el registro
-                    val updatedParteAsistencia = dao.updateParteAsistencia(
+                    dao.updateParteAsistencia(
                         folioPAsistencia = parteAsistencia.folioPAsistencia,
                         aCargoDelCuerpo = parteAsistencia.aCargoDelCuerpo,
                         aCargoDeLaCompania = parteAsistencia.aCargoDeLaCompania,
@@ -196,15 +176,39 @@ fun Route.parteAsistenciaRoutes(dao: DAOFacadeImpl) {
                         observaciones = parteAsistencia.observaciones,
                         idTipoLlamado = parteAsistencia.idTipoLlamado
                     )
-                    call.respond(HttpStatusCode.OK, updatedParteAsistencia)
                 }
+                val( tipoCitacion, moviles, voluntarios) = dao.getParteAsistenciaWithRelations(resultado.folioPAsistencia!!)
+                val response = ParteAsistenciaResponse(
+                    folioPAsistencia = resultado.folioPAsistencia,
+                    aCargoDelCuerpo = resultado.aCargoDelCuerpo,
+                    encargadoCuerpo = dao.getVoluntario(resultado.aCargoDelCuerpo),
+                    aCargoDeLaCompania = resultado.aCargoDeLaCompania,
+                    encargadoCompania = dao.getVoluntario(resultado.aCargoDeLaCompania),
+                    fechaAsistencia = resultado.fechaAsistencia,
+                    horaInicio = resultado.horaInicio,
+                    horaFin = resultado.horaFin,
+                    direccionAsistencia = resultado.direccionAsistencia,
+                    totalAsistencia = resultado.totalAsistencia,
+                    observaciones = resultado.observaciones,
+                    idTipoLlamado = resultado.idTipoLlamado,
+                    tipoLlamado = tipoCitacion,
+                    voluntarios = voluntarios,
+                    moviles = moviles
+                )
+                call.respond(HttpStatusCode.OK, response)
+            } catch (e: IllegalArgumentException) {
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to e.message))
             } catch (e: Exception) {
                 call.respond(
                     HttpStatusCode.InternalServerError,
-                    mapOf("error" to "Error al guardar parte de asistencia: ${e.message}")
+                    mapOf("error" to "Error al guardar parte asistencia: ${e.message}")
                 )
             }
         }
+
+
+
+
         get("/relaciones/{folioPAsistencia}") {
             val folioPAsistencia = call.parameters["folioPAsistencia"]?.toIntOrNull()
             if (folioPAsistencia == null) {
@@ -226,9 +230,9 @@ fun Route.parteAsistenciaRoutes(dao: DAOFacadeImpl) {
                 val response = ParteAsistenciaResponse(
                     folioPAsistencia = parteAsistencia.folioPAsistencia,
                     aCargoDelCuerpo = parteAsistencia.aCargoDelCuerpo,
-                    encargadoCuerpo = voluntarios.find { it.idVoluntario == parteAsistencia.aCargoDelCuerpo },
+                    encargadoCuerpo = dao.getVoluntario(parteAsistencia.aCargoDelCuerpo),
                     aCargoDeLaCompania = parteAsistencia.aCargoDeLaCompania,
-                    encargadoCompania = voluntarios.find { it.idVoluntario == parteAsistencia.aCargoDeLaCompania },
+                    encargadoCompania = dao.getVoluntario(parteAsistencia.aCargoDeLaCompania),
                     fechaAsistencia = parteAsistencia.fechaAsistencia,
                     horaInicio = parteAsistencia.horaInicio,
                     horaFin = parteAsistencia.horaFin,
