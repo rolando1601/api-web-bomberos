@@ -12,14 +12,14 @@ data class Voluntarios(
     val fechaNac: LocalDate,
     val direccion: String,
     val numeroContacto: String,
-    val tipoSangre: String,
+    val tipoSangre: String? = null,
     val enfermedades: String,
     val alergias: String,
     val fechaIngreso: LocalDate,
     val claveRadial: String,
     val rutVoluntario: String,
     val idCompania: Int,
-    val idUsuario: Int?,
+    val idUsuario: Int?=null,
     val idCargo: Int,
     val apellidop: String,
     val apellidom: String,
@@ -27,48 +27,49 @@ data class Voluntarios(
     val usuario: Usuarios? = null,
     val cargo: Cargos? = null,
     val activo: Boolean
-) {
-    constructor(
-        idVoluntario: Int? = null,
-        nombreVol: String,
-        fechaNac: LocalDate,
-        direccion: String,
-        numeroContacto: String,
-        tipoSangre: String,
-        enfermedades: String,
-        alergias: String,
-        fechaIngreso: LocalDate,
-        claveRadial: String,
-        rutVoluntario: String,
-        compania: Companias,
-        usuario: Usuarios?,
-        cargo: Cargos,
-        apellidop: String,
-        apellidom: String,
-        activo: Boolean
-    ) : this(
-        idVoluntario = idVoluntario,
-        nombreVol = nombreVol,
-        fechaNac = fechaNac,
-        direccion = direccion,
-        numeroContacto = numeroContacto,
-        tipoSangre = tipoSangre,
-        enfermedades = enfermedades,
-        alergias = alergias,
-        fechaIngreso = fechaIngreso,
-        claveRadial = claveRadial,
-        rutVoluntario = rutVoluntario,
-        idCompania = compania.idCompania!!,
-        idUsuario = usuario?.idUsuario,
-        idCargo = cargo.idCargo,
-        apellidop = apellidop,
-        apellidom = apellidom,
-        compania = compania,
-        usuario = usuario,
-        cargo = cargo,
-        activo = activo
-    )
-}
+)
+// {
+//    constructor(
+//        idVoluntario: Int? = null,
+//        nombreVol: String,
+//        fechaNac: LocalDate,
+//        direccion: String,
+//        numeroContacto: String,
+//        tipoSangre: String,
+//        enfermedades: String,
+//        alergias: String,
+//        fechaIngreso: LocalDate,
+//        claveRadial: String,
+//        rutVoluntario: String,
+//        compania: Companias,
+//        usuario: Usuarios?,
+//        cargo: Cargos,
+//        apellidop: String,
+//        apellidom: String,
+//        activo: Boolean
+//    ) : this(
+//        idVoluntario = idVoluntario,
+//        nombreVol = nombreVol,
+//        fechaNac = fechaNac,
+//        direccion = direccion,
+//        numeroContacto = numeroContacto,
+//        tipoSangre = tipoSangre,
+//        enfermedades = enfermedades,
+//        alergias = alergias,
+//        fechaIngreso = fechaIngreso,
+//        claveRadial = claveRadial,
+//        rutVoluntario = rutVoluntario,
+//        idCompania = compania.idCompania!!,
+//        idUsuario = usuario?.idUsuario,
+//        idCargo = cargo.idCargo,
+//        apellidop = apellidop,
+//        apellidom = apellidom,
+//        compania = compania,
+//        usuario = usuario,
+//        cargo = cargo,
+//        activo = activo
+//    )
+//}
 
 object Voluntario : Table() {
     val idVoluntario = integer("idVoluntario").autoIncrement()
@@ -76,7 +77,7 @@ object Voluntario : Table() {
     val fechaNac = date("fechaNac")
     val direccion = varchar("direccion", 255)
     val numeroContacto = varchar("numeroContacto", 15)
-    val tipoSangre = varchar("tipoSangre", 3)
+    val tipoSangre = varchar("tipoSangre", 3).nullable()
     val enfermedades = text("enfermedades")
     val alergias = text("alergias")
     val fechaIngreso = date("fechaIngreso")

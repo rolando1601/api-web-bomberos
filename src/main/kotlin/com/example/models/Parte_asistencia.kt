@@ -18,7 +18,12 @@ data class Partes_asistencia(
     val direccionAsistencia: String,
     val totalAsistencia: Int,
     val observaciones: String,
-    val idTipoLlamado: Int
+    val idTipoLlamado: Int,
+    val encargadoCuerpo: Voluntarios? = null,
+    val encargadoCompania: Voluntarios? = null,
+    val tipoLlamado: TipoCitacion? = null,
+    val voluntarios: List<Voluntarios>? = null,
+    val moviles: List<Moviles>? = null
 )
 
 object Parte_asistencia : Table() {

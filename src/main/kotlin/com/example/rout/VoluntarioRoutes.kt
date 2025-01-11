@@ -45,6 +45,9 @@ fun Route.voluntarioRoutes(dao: DAOFacadeImpl) {
                     val (compania, usuario, cargo) = dao.getVoluntarioWithRelations(idVoluntario)
                     val response = VoluntarioResponse(
                         idVoluntario = voluntario.idVoluntario,
+                        activo = voluntario.activo,
+                        apellidop = voluntario.apellidop,
+                        apellidom = voluntario.apellidom,
                         nombreVol = voluntario.nombreVol,
                         fechaNac = voluntario.fechaNac,
                         direccion = voluntario.direccion,
@@ -56,14 +59,12 @@ fun Route.voluntarioRoutes(dao: DAOFacadeImpl) {
                         claveRadial = voluntario.claveRadial,
                         rutVoluntario = voluntario.rutVoluntario,
                         idCompania = voluntario.idCompania,
-                        idUsuario = voluntario.idUsuario,
-                        idCargo = voluntario.idCargo,
-                        apellidop = voluntario.apellidop,
-                        apellidom = voluntario.apellidom,
                         compania = compania,
+                        idUsuario = voluntario.idUsuario,
                         usuario = usuario,
-                        cargo = cargo,
-                        activo = voluntario.activo
+                        idCargo = voluntario.idCargo,
+                        cargo = cargo
+
                     )
                     call.respond(HttpStatusCode.OK, response)
                 } else {

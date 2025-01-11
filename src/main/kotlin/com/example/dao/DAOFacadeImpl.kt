@@ -15,7 +15,6 @@ import org.jetbrains.exposed.sql.transactions.transaction
 class DAOFacadeImpl : DAOFacade {
 
 
-
     // Institucion implementation
 
     private fun resultToInstitucion(row: ResultRow) = Instituciones(
@@ -169,7 +168,6 @@ class DAOFacadeImpl : DAOFacade {
             comuna = comuna
         )
     }
-
 
 
     // Compania implementation
@@ -353,7 +351,7 @@ class DAOFacadeImpl : DAOFacade {
         fechaNac: LocalDate,
         direccion: String,
         numeroContacto: String,
-        tipoSangre: String,
+        tipoSangre: String?,
         enfermedades: String,
         alergias: String,
         fechaIngreso: LocalDate,
@@ -419,7 +417,7 @@ class DAOFacadeImpl : DAOFacade {
         fechaNac: LocalDate,
         direccion: String,
         numeroContacto: String,
-        tipoSangre: String,
+        tipoSangre: String?,
         enfermedades: String,
         alergias: String,
         fechaIngreso: LocalDate,
@@ -481,6 +479,7 @@ class DAOFacadeImpl : DAOFacade {
             .singleOrNull()
             ?: throw IllegalArgumentException("Voluntario con rut $rutVoluntario no encontrado")
     }
+
     override suspend fun getVoluntarioByIdUsuario(idUsuario: Int): Voluntarios? = transaction {
         Voluntario.select { Voluntario.idUsuario eq idUsuario }
             .mapNotNull(::resultToVoluntario)
@@ -492,7 +491,8 @@ class DAOFacadeImpl : DAOFacade {
         // Primero obtiene el voluntario dentro de un bloque transaction
         val voluntario = transaction {
             Voluntario.select { Voluntario.idVoluntario eq idVoluntario }
-                .singleOrNull()?.let { resultToVoluntario(it) } // Aseguramos que resultToVoluntario se invoque correctamente
+                .singleOrNull()
+                ?.let { resultToVoluntario(it) } // Aseguramos que resultToVoluntario se invoque correctamente
         } ?: throw IllegalArgumentException("Voluntario con ID $idVoluntario no encontrado")
 
         // Llama a las funciones suspendidas fuera del bloque transaction
@@ -769,7 +769,6 @@ class DAOFacadeImpl : DAOFacade {
     }
 
 
-
     // ParteEmergencia implementation
 
     private fun resultToParteEmergencia(row: ResultRow) = Partes_emergencia(
@@ -905,6 +904,20 @@ class DAOFacadeImpl : DAOFacade {
         )
     }
 
+    override suspend fun getParteEmergenciaWithRelations(folioPEmergencia: Int): Pair<List<Moviles>, List<Voluntarios>> {
+        // Primero obtiene el Parte de Emergencia dentro de un bloque transaction
+        val parteEmergencia = transaction {
+            Parte_emergencia.select { Parte_emergencia.folioPEmergencia eq folioPEmergencia }
+                .singleOrNull()
+                ?.let { resultToParteEmergencia(it) } // Aseguramos que resultToParteEmergencia se invoque correctamente
+        } ?: throw IllegalArgumentException("Parte de Emergencia con folio $folioPEmergencia no encontrado")
+        // Llama a las funciones suspendidas fuera del bloque transaction
+        val moviles = getMovilesPorParteEmergencia(folioPEmergencia)
+        val voluntarios = getVoluntariosPorParteEmergencia(folioPEmergencia)
+
+        // Retorna las relaciones
+        return Pair(moviles, voluntarios)
+    }
 
 
     // ParteAsistencia implementation
@@ -1015,6 +1028,60 @@ class DAOFacadeImpl : DAOFacade {
             idTipoLlamado
         )
     }
+
+    override suspend fun getParteAsistenciaWithRelations(folioPAsistencia: Int): Triple<TipoCitacion?, List<Moviles>, List<Voluntarios>> {
+        // Primero obtiene el Parte de Asistencia dentro de un bloque transaction
+        val parteAsistencia = transaction {
+            Parte_asistencia.select { Parte_asistencia.folioPAsistencia eq folioPAsistencia }
+                .singleOrNull()
+                ?.let { resultToParteAsistencia(it) } // Aseguramos que resultToParteAsistencia se invoque correctamente
+        } ?: throw IllegalArgumentException("Parte de Asistencia con folio $folioPAsistencia no encontrado")
+
+        // Llama a las funciones suspendidas fuera del bloque transaction
+        val tipoCitacion =
+            parteAsistencia.idTipoLlamado.let { getTipoCitacion(it) } // let es seguro porque idTipoLlamado es no nulo
+        val moviles = getMovilesPorParteAsistencia(folioPAsistencia)
+        val voluntarios = getVoluntariosPorParteAsistencia(folioPAsistencia)
+
+        // Retorna las relaciones
+        return Triple(tipoCitacion, moviles, voluntarios)
+    }
+
+    override suspend fun getParteAsistenciaResponse(folioPAsistencia: Int): ParteAsistenciaResponse? {
+        val parteAsistencia = transaction {
+            Parte_asistencia
+                .select { Parte_asistencia.folioPAsistencia eq folioPAsistencia }
+                .singleOrNull()
+                ?.let { resultToParteAsistencia(it) }
+        } ?: return null
+
+        // Llama a las funciones suspendidas fuera del bloque transaction
+        val encargadoCuerpo = getVoluntario(parteAsistencia.aCargoDelCuerpo)
+        val encargadoCompania = getVoluntario(parteAsistencia.aCargoDeLaCompania)
+        val tipoLlamado = getTipoCitacion(parteAsistencia.idTipoLlamado)
+        val voluntarios = getVoluntariosPorParteAsistencia(folioPAsistencia)
+        val moviles = getMovilesPorParteAsistencia(folioPAsistencia)
+
+        return ParteAsistenciaResponse(
+            folioPAsistencia = parteAsistencia.folioPAsistencia,
+            aCargoDelCuerpo = parteAsistencia.aCargoDelCuerpo,
+            encargadoCuerpo = encargadoCuerpo,
+            aCargoDeLaCompania = parteAsistencia.aCargoDeLaCompania,
+            encargadoCompania = encargadoCompania,
+            fechaAsistencia = parteAsistencia.fechaAsistencia,
+            horaInicio = parteAsistencia.horaInicio,
+            horaFin = parteAsistencia.horaFin,
+            direccionAsistencia = parteAsistencia.direccionAsistencia,
+            totalAsistencia = parteAsistencia.totalAsistencia,
+            observaciones = parteAsistencia.observaciones,
+            idTipoLlamado = parteAsistencia.idTipoLlamado,
+            tipoLlamado = tipoLlamado,
+            voluntarios = voluntarios,
+            moviles = moviles
+        )
+    }
+
+
 
     // MaterialP implementation
 
@@ -1137,11 +1204,12 @@ class DAOFacadeImpl : DAOFacade {
         ParteEmergenciaVoluntario.selectAll().map(::resultToParteEmergenciaVoluntario)
     }
 
-    override suspend fun getParteEmergenciaVoluntario(idParteVoluntario: Int): PartesEmergenciaVoluntarios? = transaction {
-        ParteEmergenciaVoluntario.select { ParteEmergenciaVoluntario.idParteVoluntario eq idParteVoluntario }
-            .mapNotNull(::resultToParteEmergenciaVoluntario)
-            .singleOrNull()
-    }
+    override suspend fun getParteEmergenciaVoluntario(idParteVoluntario: Int): PartesEmergenciaVoluntarios? =
+        transaction {
+            ParteEmergenciaVoluntario.select { ParteEmergenciaVoluntario.idParteVoluntario eq idParteVoluntario }
+                .mapNotNull(::resultToParteEmergenciaVoluntario)
+                .singleOrNull()
+        }
 
     override suspend fun createParteEmergenciaVoluntario(
         folioPEmergencia: Int,
@@ -1172,10 +1240,11 @@ class DAOFacadeImpl : DAOFacade {
         folioPEmergencia: Int,
         idVoluntario: Int
     ): PartesEmergenciaVoluntarios = transaction {
-        val rowsUpdated = ParteEmergenciaVoluntario.update({ ParteEmergenciaVoluntario.idParteVoluntario eq idParteVoluntario }) {
-            it[this.folioPEmergencia] = folioPEmergencia
-            it[this.idVoluntario] = idVoluntario
-        }
+        val rowsUpdated =
+            ParteEmergenciaVoluntario.update({ ParteEmergenciaVoluntario.idParteVoluntario eq idParteVoluntario }) {
+                it[this.folioPEmergencia] = folioPEmergencia
+                it[this.idVoluntario] = idVoluntario
+            }
         if (rowsUpdated == 0) throw IllegalArgumentException("ParteEmergenciaVoluntario con id $idParteVoluntario no encontrado")
         PartesEmergenciaVoluntarios(idParteVoluntario, folioPEmergencia, idVoluntario)
     }
@@ -1209,7 +1278,6 @@ class DAOFacadeImpl : DAOFacade {
     }
 
 
-
     // ParteAsistenciaVoluntario implementation
 
     private fun resultToParteAsistenciaVoluntario(row: ResultRow) = PartesAsistenciaVoluntarios(
@@ -1221,11 +1289,12 @@ class DAOFacadeImpl : DAOFacade {
         ParteAsistenciaVoluntario.selectAll().map(::resultToParteAsistenciaVoluntario)
     }
 
-    override suspend fun getParteAsistenciaVoluntario(idParteAsistenciaVoluntario: Int): PartesAsistenciaVoluntarios? = transaction {
-        ParteAsistenciaVoluntario.select { ParteAsistenciaVoluntario.idParteAsistenciaVoluntario eq idParteAsistenciaVoluntario }
-            .mapNotNull(::resultToParteAsistenciaVoluntario)
-            .singleOrNull()
-    }
+    override suspend fun getParteAsistenciaVoluntario(idParteAsistenciaVoluntario: Int): PartesAsistenciaVoluntarios? =
+        transaction {
+            ParteAsistenciaVoluntario.select { ParteAsistenciaVoluntario.idParteAsistenciaVoluntario eq idParteAsistenciaVoluntario }
+                .mapNotNull(::resultToParteAsistenciaVoluntario)
+                .singleOrNull()
+        }
 
     override suspend fun createParteAsistenciaVoluntario(
         folioPAsistencia: Int,
@@ -1236,8 +1305,9 @@ class DAOFacadeImpl : DAOFacade {
             it[this.idVoluntario] = idVoluntario
         }
 
-        val idParteAsistenciaVoluntario = insertStatement.resultedValues?.get(0)?.get(ParteAsistenciaVoluntario.idParteAsistenciaVoluntario)
-            ?: throw IllegalStateException("No se pudo obtener el ID del parte asistencia voluntario generado")
+        val idParteAsistenciaVoluntario =
+            insertStatement.resultedValues?.get(0)?.get(ParteAsistenciaVoluntario.idParteAsistenciaVoluntario)
+                ?: throw IllegalStateException("No se pudo obtener el ID del parte asistencia voluntario generado")
 
         PartesAsistenciaVoluntarios(
             idParteAsistenciaVoluntario = idParteAsistenciaVoluntario,
@@ -1256,13 +1326,41 @@ class DAOFacadeImpl : DAOFacade {
         folioPAsistencia: Int,
         idVoluntario: Int
     ): PartesAsistenciaVoluntarios = transaction {
-        val rowsUpdated = ParteAsistenciaVoluntario.update({ ParteAsistenciaVoluntario.idParteAsistenciaVoluntario eq idParteAsistenciaVoluntario }) {
-            it[this.folioPAsistencia] = folioPAsistencia
-            it[this.idVoluntario] = idVoluntario
-        }
+        val rowsUpdated =
+            ParteAsistenciaVoluntario.update({ ParteAsistenciaVoluntario.idParteAsistenciaVoluntario eq idParteAsistenciaVoluntario }) {
+                it[this.folioPAsistencia] = folioPAsistencia
+                it[this.idVoluntario] = idVoluntario
+            }
         if (rowsUpdated == 0) throw IllegalArgumentException("ParteAsistenciaVoluntario con id $idParteAsistenciaVoluntario no encontrado")
         PartesAsistenciaVoluntarios(idParteAsistenciaVoluntario, folioPAsistencia, idVoluntario)
     }
+
+    override suspend fun getVoluntariosPorParteAsistencia(folioPAsistencia: Int): List<Voluntarios> = transaction {
+        (ParteAsistenciaVoluntario innerJoin Voluntario)
+            .select { ParteAsistenciaVoluntario.folioPAsistencia eq folioPAsistencia }
+            .map { row ->
+                Voluntarios(
+                    idVoluntario = row[Voluntario.idVoluntario],
+                    nombreVol = row[Voluntario.nombreVol],
+                    fechaNac = row[Voluntario.fechaNac],
+                    direccion = row[Voluntario.direccion],
+                    numeroContacto = row[Voluntario.numeroContacto],
+                    tipoSangre = row[Voluntario.tipoSangre],
+                    enfermedades = row[Voluntario.enfermedades],
+                    alergias = row[Voluntario.alergias],
+                    fechaIngreso = row[Voluntario.fechaIngreso],
+                    claveRadial = row[Voluntario.claveRadial],
+                    rutVoluntario = row[Voluntario.rutVoluntario],
+                    idCompania = row[Voluntario.idCompania],
+                    idUsuario = row[Voluntario.idUsuario],
+                    idCargo = row[Voluntario.idCargo],
+                    apellidop = row[Voluntario.apellidop],
+                    apellidom = row[Voluntario.apellidom],
+                    activo = row[Voluntario.activo]
+                )
+            }
+    }
+
 
     //ParteEmergenciaMovil implementation
 
@@ -1290,8 +1388,9 @@ class DAOFacadeImpl : DAOFacade {
             it[this.idMovil] = idMovil
         }
 
-        val idParteEmergenciaMovil = insertStatement.resultedValues?.get(0)?.get(ParteEmergenciaMovil.idParteEmergenciaMovil)
-            ?: throw IllegalStateException("No se pudo obtener el ID del parte emergencia móvil generado")
+        val idParteEmergenciaMovil =
+            insertStatement.resultedValues?.get(0)?.get(ParteEmergenciaMovil.idParteEmergenciaMovil)
+                ?: throw IllegalStateException("No se pudo obtener el ID del parte emergencia móvil generado")
 
         PartesEmergenciaMoviles(
             idParteEmergenciaMovil = idParteEmergenciaMovil,
@@ -1310,26 +1409,28 @@ class DAOFacadeImpl : DAOFacade {
         folioPEmergencia: Int,
         idMovil: Int
     ): PartesEmergenciaMoviles = transaction {
-        val rowsUpdated = ParteEmergenciaMovil.update({ ParteEmergenciaMovil.idParteEmergenciaMovil eq idParteEmergenciaMovil }) {
-            it[this.folioPEmergencia] = folioPEmergencia
-            it[this.idMovil] = idMovil
-        }
+        val rowsUpdated =
+            ParteEmergenciaMovil.update({ ParteEmergenciaMovil.idParteEmergenciaMovil eq idParteEmergenciaMovil }) {
+                it[this.folioPEmergencia] = folioPEmergencia
+                it[this.idMovil] = idMovil
+            }
         if (rowsUpdated == 0) throw IllegalArgumentException("ParteEmergenciaMovil con id $idParteEmergenciaMovil no encontrado")
         PartesEmergenciaMoviles(idParteEmergenciaMovil, folioPEmergencia, idMovil)
     }
 
 
-    override suspend fun getParteEmergenciaMovilByFolio(folioPEmergencia: Int): List<PartesEmergenciaMoviles> = transaction {
-        ParteEmergenciaMovil
-            .select { ParteEmergenciaMovil.folioPEmergencia eq folioPEmergencia }
-            .map {
-                PartesEmergenciaMoviles(
-                    idParteEmergenciaMovil = it[ParteEmergenciaMovil.idParteEmergenciaMovil],
-                    folioPEmergencia = it[ParteEmergenciaMovil.folioPEmergencia],
-                    idMovil = it[ParteEmergenciaMovil.idMovil]
-                )
-            }
-    }
+    override suspend fun getParteEmergenciaMovilByFolio(folioPEmergencia: Int): List<PartesEmergenciaMoviles> =
+        transaction {
+            ParteEmergenciaMovil
+                .select { ParteEmergenciaMovil.folioPEmergencia eq folioPEmergencia }
+                .map {
+                    PartesEmergenciaMoviles(
+                        idParteEmergenciaMovil = it[ParteEmergenciaMovil.idParteEmergenciaMovil],
+                        folioPEmergencia = it[ParteEmergenciaMovil.folioPEmergencia],
+                        idMovil = it[ParteEmergenciaMovil.idMovil]
+                    )
+                }
+        }
 
     override suspend fun getMovilesPorParteEmergencia(folioPEmergencia: Int): List<Moviles> = transaction {
         (ParteEmergenciaMovil innerJoin Movil)
@@ -1370,8 +1471,9 @@ class DAOFacadeImpl : DAOFacade {
             it[this.idMovil] = idMovil
         }
 
-        val idParteAsistenciaMovil = insertStatement.resultedValues?.get(0)?.get(ParteAsistenciaMovil.idParteAsistenciaMovil)
-            ?: throw IllegalStateException("No se pudo obtener el ID del parte asistencia móvil generado")
+        val idParteAsistenciaMovil =
+            insertStatement.resultedValues?.get(0)?.get(ParteAsistenciaMovil.idParteAsistenciaMovil)
+                ?: throw IllegalStateException("No se pudo obtener el ID del parte asistencia móvil generado")
 
         PartesAsistenciaMoviles(
             idParteAsistenciaMovil = idParteAsistenciaMovil,
@@ -1390,12 +1492,25 @@ class DAOFacadeImpl : DAOFacade {
         folioPAsistencia: Int,
         idMovil: Int
     ): PartesAsistenciaMoviles = transaction {
-        val rowsUpdated = ParteAsistenciaMovil.update({ ParteAsistenciaMovil.idParteAsistenciaMovil eq idParteAsistenciaMovil }) {
-            it[this.folioPAsistencia] = folioPAsistencia
-            it[this.idMovil] = idMovil
-        }
+        val rowsUpdated =
+            ParteAsistenciaMovil.update({ ParteAsistenciaMovil.idParteAsistenciaMovil eq idParteAsistenciaMovil }) {
+                it[this.folioPAsistencia] = folioPAsistencia
+                it[this.idMovil] = idMovil
+            }
         if (rowsUpdated == 0) throw IllegalArgumentException("ParteAsistenciaMovil con id $idParteAsistenciaMovil no encontrado")
         PartesAsistenciaMoviles(idParteAsistenciaMovil, folioPAsistencia, idMovil)
+    }
+
+    override suspend fun getMovilesPorParteAsistencia(folioPAsistencia: Int): List<Moviles> = transaction {
+        (ParteAsistenciaMovil innerJoin Movil)
+            .select { ParteAsistenciaMovil.folioPAsistencia eq folioPAsistencia }
+            .map { row ->
+                Moviles(
+                    idMovil = row[Movil.idMovil],
+                    nomenclatura = row[Movil.nomenclatura],
+                    especialidad = row[Movil.especialidad]
+                )
+            }
     }
 
     // ParteEmergenciaMaterial implementation
@@ -1410,11 +1525,12 @@ class DAOFacadeImpl : DAOFacade {
         ParteEmergenciaMaterial.selectAll().map(::resultToParteEmergenciaMaterial)
     }
 
-    override suspend fun getParteEmergenciaMaterial(idparteemergenciamaterialp: Int): PartesEmergenciaMateriales? = transaction {
-        ParteEmergenciaMaterial.select { ParteEmergenciaMaterial.idParteAsistenciaMaterialP eq idparteemergenciamaterialp }
-            .mapNotNull(::resultToParteEmergenciaMaterial)
-            .singleOrNull()
-    }
+    override suspend fun getParteEmergenciaMaterial(idparteemergenciamaterialp: Int): PartesEmergenciaMateriales? =
+        transaction {
+            ParteEmergenciaMaterial.select { ParteEmergenciaMaterial.idParteAsistenciaMaterialP eq idparteemergenciamaterialp }
+                .mapNotNull(::resultToParteEmergenciaMaterial)
+                .singleOrNull()
+        }
 
     override suspend fun createParteEmergenciaMaterial(
         folioPEmergencia: Int,
@@ -1425,8 +1541,9 @@ class DAOFacadeImpl : DAOFacade {
             it[this.idMaterialP] = idMaterialP
         }
 
-        val idparteemergenciamaterialp = insertStatement.resultedValues?.get(0)?.get(ParteEmergenciaMaterial.idParteAsistenciaMaterialP)
-            ?: throw IllegalStateException("No se pudo obtener el ID del parte emergencia material generado")
+        val idparteemergenciamaterialp =
+            insertStatement.resultedValues?.get(0)?.get(ParteEmergenciaMaterial.idParteAsistenciaMaterialP)
+                ?: throw IllegalStateException("No se pudo obtener el ID del parte emergencia material generado")
 
         PartesEmergenciaMateriales(
             idparteemergenciamaterialp = idparteemergenciamaterialp,
@@ -1444,10 +1561,11 @@ class DAOFacadeImpl : DAOFacade {
         folioPEmergencia: Int,
         idMaterialP: Int
     ): PartesEmergenciaMateriales = transaction {
-        val rowsUpdated = ParteEmergenciaMaterial.update({ ParteEmergenciaMaterial.idParteAsistenciaMaterialP eq idparteemergenciamaterialp }) {
-            it[this.folioPEmergencia] = folioPEmergencia
-            it[this.idMaterialP] = idMaterialP
-        }
+        val rowsUpdated =
+            ParteEmergenciaMaterial.update({ ParteEmergenciaMaterial.idParteAsistenciaMaterialP eq idparteemergenciamaterialp }) {
+                it[this.folioPEmergencia] = folioPEmergencia
+                it[this.idMaterialP] = idMaterialP
+            }
         if (rowsUpdated == 0) throw IllegalArgumentException("ParteEmergenciaMaterial con id $idparteemergenciamaterialp no encontrado")
         PartesEmergenciaMateriales(idparteemergenciamaterialp, folioPEmergencia, idMaterialP)
     }
@@ -1552,7 +1670,6 @@ class DAOFacadeImpl : DAOFacade {
 
 
     //Funciones extras
-
 
 
 }

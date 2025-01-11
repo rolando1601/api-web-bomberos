@@ -1,6 +1,7 @@
 package com.example.routes
 
 import com.example.dao.DAOFacadeImpl
+import com.example.models.ParteEmergenciaResponse
 import com.example.models.Partes_emergencia
 import io.ktor.http.*
 import io.ktor.server.request.*
@@ -12,7 +13,10 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
 
         // Ruta base
         get {
-            call.respond(HttpStatusCode.OK, "Ruta base de Parte Emergencia. Usa /crear, /obtener, /actualizar, /eliminar o /buscar para más acciones.")
+            call.respond(
+                HttpStatusCode.OK,
+                "Ruta base de Parte Emergencia. Usa /crear, /obtener, /actualizar, /eliminar o /buscar para más acciones."
+            )
         }
 
         // Obtener todos los partes de emergencia
@@ -21,7 +25,10 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
                 val partesEmergencia = dao.allPartesEmergencia()
                 call.respond(HttpStatusCode.OK, partesEmergencia)
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al obtener partes de emergencia: ${e.message}"))
+                call.respond(
+                    HttpStatusCode.InternalServerError,
+                    mapOf("error" to "Error al obtener partes de emergencia: ${e.message}")
+                )
             }
         }
 
@@ -44,7 +51,10 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
                 )
                 call.respond(HttpStatusCode.Created, createdParteEmergencia)
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al crear parte de emergencia: ${e.message}"))
+                call.respond(
+                    HttpStatusCode.InternalServerError,
+                    mapOf("error" to "Error al crear parte de emergencia: ${e.message}")
+                )
             }
         }
 
@@ -56,16 +66,44 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
                 return@get
             }
             try {
+                //obtiene el parte de emergencia y sus relaciones
                 val parteEmergencia = dao.getParteEmergencia(folioPEmergencia)
-                if (parteEmergencia == null) {
-                    call.respond(HttpStatusCode.NotFound, mapOf("error" to "Parte de emergencia no encontrado."))
+                if (parteEmergencia != null) {
+                    val (moviles, voluntarios) = dao.getParteEmergenciaWithRelations(folioPEmergencia)
+                    val response = ParteEmergenciaResponse(
+                        folioPEmergencia = parteEmergencia.folioPEmergencia,
+                        horaInicio = parteEmergencia.horaInicio,
+                        horaFin = parteEmergencia.horaFin,
+                        fechaEmergencia = parteEmergencia.fechaEmergencia,
+                        preInforme = parteEmergencia.preInforme,
+                        llamarEmpresaQuimica = parteEmergencia.llamarEmpresaQuimica,
+                        descripcionMaterialP = parteEmergencia.descripcionMaterialP,
+                        direccionEmergencia = parteEmergencia.direccionEmergencia,
+                        idOficial = parteEmergencia.idOficial,
+                        oficial = dao.getVoluntario(parteEmergencia.idOficial),
+                        idClaveEmergencia = parteEmergencia.idClaveEmergencia,
+                        claveEmergencia = dao.getClaveEmergencia(parteEmergencia.idClaveEmergencia),
+                        folioPAsistencia = parteEmergencia.folioPAsistencia,
+                        parteAsistencia = parteEmergencia.folioPAsistencia?.let { dao.getParteAsistenciaResponse(it) },
+                        idMaterialP = parteEmergencia.idMaterialP,
+                        materialesP = parteEmergencia.idMaterialP?.let { dao.getMaterialP(it) },
+                        voluntarios = voluntarios,
+                        moviles = moviles
+                    )
+                    call.respond(HttpStatusCode.OK, response)
                 } else {
-                    call.respond(HttpStatusCode.OK, parteEmergencia)
+                    call.respond(HttpStatusCode.NotFound, mapOf("error" to "Parte Emergencia no encontrado"))
                 }
+            } catch (e: IllegalArgumentException) {
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to e.message))
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al obtener parte de emergencia: ${e.message}"))
+                call.respond(
+                    HttpStatusCode.InternalServerError,
+                    mapOf("error" to "Error al buscar Parte Emergencia: ${e.message}")
+                )
             }
         }
+
 
         // Actualizar un parte de emergencia
         put("/actualizar/{folioPEmergencia}") {
@@ -92,7 +130,10 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
                 )
                 call.respond(HttpStatusCode.OK, updatedParteEmergencia)
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al actualizar parte de emergencia: ${e.message}"))
+                call.respond(
+                    HttpStatusCode.InternalServerError,
+                    mapOf("error" to "Error al actualizar parte de emergencia: ${e.message}")
+                )
             }
         }
 
@@ -111,7 +152,10 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
                     call.respond(HttpStatusCode.NotFound, mapOf("error" to "Parte de emergencia no encontrado."))
                 }
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al eliminar parte de emergencia: ${e.message}"))
+                call.respond(
+                    HttpStatusCode.InternalServerError,
+                    mapOf("error" to "Error al eliminar parte de emergencia: ${e.message}")
+                )
             }
         }
 
@@ -157,7 +201,57 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
                     }
                 }
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al guardar parte de emergencia: ${e.message}"))
+                call.respond(
+                    HttpStatusCode.InternalServerError,
+                    mapOf("error" to "Error al guardar parte de emergencia: ${e.message}")
+                )
+            }
+        }
+
+        get("/relaciones/{folioPEmergencia}") {
+            val folioPEmergencia = call.parameters["folioPEmergencia"]?.toIntOrNull()
+            if (folioPEmergencia == null) {
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "FolioPEmergencia inválido o faltante."))
+                return@get
+            }
+            try {
+                // Obtén el Parte de Asistencia
+                val parteEmergencia = dao.getParteEmergencia(folioPEmergencia)
+                if (parteEmergencia == null) {
+                    call.respond(HttpStatusCode.NotFound, mapOf("error" to "Parte de emergencia no encontrado."))
+                    return@get
+                }
+
+                // Obtén las relaciones del Parte de Asistencia
+                val (moviles, voluntarios) = dao.getParteEmergenciaWithRelations(folioPEmergencia)
+
+                // Construye la respuesta usando el modelo ParteAsistenciaResponse
+                val response = ParteEmergenciaResponse(
+                    folioPEmergencia = parteEmergencia.folioPEmergencia,
+                    horaInicio = parteEmergencia.horaInicio,
+                    horaFin = parteEmergencia.horaFin,
+                    fechaEmergencia = parteEmergencia.fechaEmergencia,
+                    preInforme = parteEmergencia.preInforme,
+                    llamarEmpresaQuimica = parteEmergencia.llamarEmpresaQuimica,
+                    descripcionMaterialP = parteEmergencia.descripcionMaterialP,
+                    direccionEmergencia = parteEmergencia.direccionEmergencia,
+                    idOficial = parteEmergencia.idOficial,
+                    oficial = dao.getVoluntario(parteEmergencia.idOficial),
+                    idClaveEmergencia = parteEmergencia.idClaveEmergencia,
+                    claveEmergencia = dao.getClaveEmergencia(parteEmergencia.idClaveEmergencia),
+                    folioPAsistencia = parteEmergencia.folioPAsistencia,
+                    parteAsistencia = parteEmergencia.folioPAsistencia?.let { dao.getParteAsistenciaResponse(it) },
+                    idMaterialP = parteEmergencia.idMaterialP,
+                    moviles = moviles,
+                    voluntarios = voluntarios
+                )
+
+                call.respond(HttpStatusCode.OK, response)
+            } catch (e: Exception) {
+                call.respond(
+                    HttpStatusCode.InternalServerError,
+                    mapOf("error" to "Error al obtener relaciones del parte de asistencia: ${e.message}")
+                )
             }
         }
 

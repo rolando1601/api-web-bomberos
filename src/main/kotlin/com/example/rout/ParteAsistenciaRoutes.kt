@@ -1,6 +1,7 @@
 package com.example.routes
 
 import com.example.dao.DAOFacadeImpl
+import com.example.models.ParteAsistenciaResponse
 import com.example.models.Partes_asistencia
 import io.ktor.http.*
 import io.ktor.server.request.*
@@ -60,19 +61,56 @@ fun Route.parteAsistenciaRoutes(dao: DAOFacadeImpl) {
                 return@get
             }
             try {
-                val parteAsistencia = dao.getParteAsistencia(folioPAsistencia)
-                if (parteAsistencia == null) {
+                //obtiene el parte de asistencia y sus relaciones
+                val partesAsistencia = dao.getParteAsistencia(folioPAsistencia)
+                if (partesAsistencia != null){
+                    val (tipoCitacion, moviles,voluntarios ) = dao.getParteAsistenciaWithRelations(folioPAsistencia)
+                    val response = ParteAsistenciaResponse(
+                        folioPAsistencia = partesAsistencia.folioPAsistencia,
+                        aCargoDelCuerpo = partesAsistencia.aCargoDelCuerpo,
+                        aCargoDeLaCompania = partesAsistencia.aCargoDeLaCompania,
+                        fechaAsistencia = partesAsistencia.fechaAsistencia,
+                        horaInicio = partesAsistencia.horaInicio,
+                        horaFin = partesAsistencia.horaFin,
+                        direccionAsistencia = partesAsistencia.direccionAsistencia,
+                        totalAsistencia = partesAsistencia.totalAsistencia,
+                        observaciones = partesAsistencia.observaciones,
+                        idTipoLlamado = partesAsistencia.idTipoLlamado,
+                        tipoLlamado = tipoCitacion,
+                        voluntarios = voluntarios,
+                        moviles = moviles
+                    )
+                    call.respond(HttpStatusCode.OK, response)
+                }else{
                     call.respond(HttpStatusCode.NotFound, mapOf("error" to "Parte de asistencia no encontrado."))
-                } else {
-                    call.respond(HttpStatusCode.OK, parteAsistencia)
                 }
+            } catch (e: IllegalArgumentException) {
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to e.message))
             } catch (e: Exception) {
                 call.respond(
                     HttpStatusCode.InternalServerError,
-                    mapOf("error" to "Error al obtener parte de asistencia: ${e.message}")
+                    mapOf("error" to "Error al buscar Parte de asistencia: ${e.message}")
                 )
             }
         }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         // Actualizar un parte de asistencia
         put("/actualizar/{folioPAsistencia}") {
@@ -167,6 +205,51 @@ fun Route.parteAsistenciaRoutes(dao: DAOFacadeImpl) {
                 )
             }
         }
+        get("/relaciones/{folioPAsistencia}") {
+            val folioPAsistencia = call.parameters["folioPAsistencia"]?.toIntOrNull()
+            if (folioPAsistencia == null) {
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "FolioPAsistencia inválido o faltante."))
+                return@get
+            }
+            try {
+                // Obtén el Parte de Asistencia
+                val parteAsistencia = dao.getParteAsistencia(folioPAsistencia)
+                if (parteAsistencia == null) {
+                    call.respond(HttpStatusCode.NotFound, mapOf("error" to "Parte de asistencia no encontrado."))
+                    return@get
+                }
+
+                // Obtén las relaciones del Parte de Asistencia
+                val (tipoCitacion, moviles, voluntarios) = dao.getParteAsistenciaWithRelations(folioPAsistencia)
+
+                // Construye la respuesta usando el modelo ParteAsistenciaResponse
+                val response = ParteAsistenciaResponse(
+                    folioPAsistencia = parteAsistencia.folioPAsistencia,
+                    aCargoDelCuerpo = parteAsistencia.aCargoDelCuerpo,
+                    encargadoCuerpo = voluntarios.find { it.idVoluntario == parteAsistencia.aCargoDelCuerpo },
+                    aCargoDeLaCompania = parteAsistencia.aCargoDeLaCompania,
+                    encargadoCompania = voluntarios.find { it.idVoluntario == parteAsistencia.aCargoDeLaCompania },
+                    fechaAsistencia = parteAsistencia.fechaAsistencia,
+                    horaInicio = parteAsistencia.horaInicio,
+                    horaFin = parteAsistencia.horaFin,
+                    direccionAsistencia = parteAsistencia.direccionAsistencia,
+                    totalAsistencia = parteAsistencia.totalAsistencia,
+                    observaciones = parteAsistencia.observaciones,
+                    idTipoLlamado = parteAsistencia.idTipoLlamado,
+                    tipoLlamado = tipoCitacion,
+                    voluntarios = voluntarios,
+                    moviles = moviles
+                )
+
+                call.respond(HttpStatusCode.OK, response)
+            } catch (e: Exception) {
+                call.respond(
+                    HttpStatusCode.InternalServerError,
+                    mapOf("error" to "Error al obtener relaciones del parte de asistencia: ${e.message}")
+                )
+            }
+        }
+
 
     }
 }
