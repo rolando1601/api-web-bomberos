@@ -80,7 +80,7 @@ interface DAOFacade {
     suspend fun createParteEmergencia(horaInicio: LocalTime, horaFin: LocalTime, fechaEmergencia: LocalDate, preInforme: String, llamarEmpresaQuimica: Boolean, descripcionMaterialP: String, direccionEmergencia: String, idOficial: Int, idClaveEmergencia: Int, folioPAsistencia: Int?, idMaterialP: Int?): Partes_emergencia
     suspend fun deleteParteEmergencia(folioPEmergencia: Int): Boolean
     suspend fun updateParteEmergencia(folioPEmergencia: Int, horaInicio: LocalTime, horaFin: LocalTime, fechaEmergencia: LocalDate, preInforme: String, llamarEmpresaQuimica: Boolean, descripcionMaterialP: String, direccionEmergencia: String, idOficial: Int, idClaveEmergencia: Int, folioPAsistencia: Int?,idMaterialP: Int?): Partes_emergencia
-    suspend fun getParteEmergenciaWithRelations(folioPEmergencia: Int): Pair<List<Moviles>, List<Voluntarios>>
+    suspend fun getParteEmergenciaWithRelations(folioPEmergencia: Int): Triple<List<Moviles>, List<Voluntarios>, List<MaterialesP>>
 
     // Partes_asistencia
     suspend fun allPartesAsistencia(): List<Partes_asistencia>
@@ -144,6 +144,7 @@ interface DAOFacade {
     suspend fun createParteEmergenciaMaterial(folioPEmergencia: Int, idMaterialP: Int): PartesEmergenciaMateriales
     suspend fun deleteParteEmergenciaMaterial(idparteemergenciamaterialp: Int): Boolean
     suspend fun updateParteEmergenciaMaterial(idparteemergenciamaterialp: Int, folioPEmergencia: Int, idMaterialP: Int): PartesEmergenciaMateriales
+    suspend fun getMaterialPByParteEmergencia(folioPEmergencia: Int): List<MaterialesP>
 
     // Cargos
     suspend fun allCargos(): List<Cargos>

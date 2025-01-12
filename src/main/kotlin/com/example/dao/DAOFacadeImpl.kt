@@ -904,7 +904,7 @@ class DAOFacadeImpl : DAOFacade {
         )
     }
 
-    override suspend fun getParteEmergenciaWithRelations(folioPEmergencia: Int): Pair<List<Moviles>, List<Voluntarios>> {
+    override suspend fun getParteEmergenciaWithRelations(folioPEmergencia: Int): Triple<List<Moviles>, List<Voluntarios>, List<MaterialesP>> {
         // Primero obtiene el Parte de Emergencia dentro de un bloque transaction
         val parteEmergencia = transaction {
             Parte_emergencia.select { Parte_emergencia.folioPEmergencia eq folioPEmergencia }
@@ -914,9 +914,17 @@ class DAOFacadeImpl : DAOFacade {
         // Llama a las funciones suspendidas fuera del bloque transaction
         val moviles = getMovilesPorParteEmergencia(folioPEmergencia)
         val voluntarios = getVoluntariosPorParteEmergencia(folioPEmergencia)
+        val materialP = getMaterialPByParteEmergencia(folioPEmergencia)
 
         // Retorna las relaciones
-        return Pair(moviles, voluntarios)
+        return Triple(moviles, voluntarios, materialP)
+    }
+
+    override suspend fun getMaterialPByParteEmergencia(folioPEmergencia: Int): List<MaterialesP> = transaction {
+        (ParteEmergenciaMaterial innerJoin MaterialP)
+            .slice(MaterialP.columns)
+            .select { ParteEmergenciaMaterial.folioPEmergencia eq folioPEmergencia }
+            .map { resultToMaterialP(it) }
     }
 
 
@@ -1276,6 +1284,7 @@ class DAOFacadeImpl : DAOFacade {
                 )
             }
     }
+
 
 
     // ParteAsistenciaVoluntario implementation

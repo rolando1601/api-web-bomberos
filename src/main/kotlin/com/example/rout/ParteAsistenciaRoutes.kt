@@ -1,6 +1,7 @@
 package com.example.routes
 
 import com.example.dao.DAOFacadeImpl
+import com.example.models.ParteAsistenciaRequest
 import com.example.models.ParteAsistenciaResponse
 import com.example.models.Partes_asistencia
 import io.ktor.http.*
@@ -253,6 +254,94 @@ fun Route.parteAsistenciaRoutes(dao: DAOFacadeImpl) {
                 )
             }
         }
+
+
+
+//        post("/guardar") {
+//            try {
+//                // Recibir el objeto ParteAsistenciaRequest
+//                val request = call.receive<ParteAsistenciaRequest>()
+//
+//                // Verificar si el folio del parte de asistencia está presente (actualización) o no (creación)
+//                val resultado = if (request.parteAsistencia.folioPAsistencia == null) {
+//                    // Crear nuevo parte de asistencia
+//                    dao.createParteAsistencia(
+//                        aCargoDelCuerpo = request.parteAsistencia.aCargoDelCuerpo,
+//                        aCargoDeLaCompania = request.parteAsistencia.aCargoDeLaCompania,
+//                        fechaAsistencia = request.parteAsistencia.fechaAsistencia,
+//                        horaInicio = request.parteAsistencia.horaInicio,
+//                        horaFin = request.parteAsistencia.horaFin,
+//                        direccionAsistencia = request.parteAsistencia.direccionAsistencia,
+//                        totalAsistencia = request.parteAsistencia.totalAsistencia,
+//                        observaciones = request.parteAsistencia.observaciones,
+//                        idTipoLlamado = request.parteAsistencia.idTipoLlamado
+//                    )
+//                } else {
+//                    // Actualizar el parte de asistencia existente
+//                    val folioPAsistencia = request.parteAsistencia.folioPAsistencia
+//                    dao.updateParteAsistencia(
+//                        folioPAsistencia = folioPAsistencia,
+//                        aCargoDelCuerpo = request.parteAsistencia.aCargoDelCuerpo,
+//                        aCargoDeLaCompania = request.parteAsistencia.aCargoDeLaCompania,
+//                        fechaAsistencia = request.parteAsistencia.fechaAsistencia,
+//                        horaInicio = request.parteAsistencia.horaInicio,
+//                        horaFin = request.parteAsistencia.horaFin,
+//                        direccionAsistencia = request.parteAsistencia.direccionAsistencia,
+//                        totalAsistencia = request.parteAsistencia.totalAsistencia,
+//                        observaciones = request.parteAsistencia.observaciones,
+//                        idTipoLlamado = request.parteAsistencia.idTipoLlamado
+//                    )
+//
+//                    // Actualizar relaciones con móviles y voluntarios
+//                    folioPAsistencia?.let {
+//                        // Limpiar asociaciones existentes
+//                        dao.deleteParteAsistenciaMoviles(folioPAsistencia)
+//                        dao.deleteParteAsistenciaVoluntarios(folioPAsistencia)
+//
+//                        // Asociar nuevos móviles
+//                        request.moviles?.forEach { idMovil ->
+//                            dao.createParteAsistenciaMovil(folioPAsistencia, idMovil)
+//                        }
+//
+//                        // Asociar nuevos voluntarios
+//                        request.voluntarios?.forEach { idVoluntario ->
+//                            dao.createParteAsistenciaVoluntario(folioPAsistencia, idVoluntario)
+//                        }
+//                    }
+//
+//                    request.parteAsistencia
+//                }
+//
+//                // Obtener relaciones actualizadas
+//                val (tipoCitacion, moviles, voluntarios) = dao.getParteAsistenciaWithRelations(resultado.folioPAsistencia!!)
+//
+//                // Construir y responder con el modelo ParteAsistenciaResponse
+//                val response = ParteAsistenciaResponse(
+//                    folioPAsistencia = resultado.folioPAsistencia,
+//                    aCargoDelCuerpo = resultado.aCargoDelCuerpo,
+//                    encargadoCuerpo = dao.getVoluntario(resultado.aCargoDelCuerpo),
+//                    aCargoDeLaCompania = resultado.aCargoDeLaCompania,
+//                    encargadoCompania = dao.getVoluntario(resultado.aCargoDeLaCompania),
+//                    fechaAsistencia = resultado.fechaAsistencia,
+//                    horaInicio = resultado.horaInicio,
+//                    horaFin = resultado.horaFin,
+//                    direccionAsistencia = resultado.direccionAsistencia,
+//                    totalAsistencia = resultado.totalAsistencia,
+//                    observaciones = resultado.observaciones,
+//                    idTipoLlamado = resultado.idTipoLlamado,
+//                    tipoLlamado = tipoCitacion,
+//                    moviles = moviles,
+//                    voluntarios = voluntarios
+//                )
+//
+//                call.respond(HttpStatusCode.OK, response)
+//            } catch (e: IllegalArgumentException) {
+//                call.respond(HttpStatusCode.BadRequest, mapOf("error" to e.message))
+//            } catch (e: Exception) {
+//                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al guardar parte asistencia: ${e.message}"))
+//            }
+//        }
+//
 
 
     }

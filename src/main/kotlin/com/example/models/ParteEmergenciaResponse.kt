@@ -20,8 +20,7 @@ data class ParteEmergenciaResponse(
     val claveEmergencia: ClaveEmergencias? = null,
     val folioPAsistencia: Int? = null,
     val parteAsistencia: ParteAsistenciaResponse? = null,
-    val idMaterialP: Int? = null,
-    val materialesP: MaterialesP? = null,
+    val materialesP: List<MaterialesP>? = null,
     val voluntarios: List<Voluntarios>? = null,
     val moviles: List<Moviles>? = null
 )

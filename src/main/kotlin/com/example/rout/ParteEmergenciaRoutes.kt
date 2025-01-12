@@ -69,7 +69,7 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
                 //obtiene el parte de emergencia y sus relaciones
                 val parteEmergencia = dao.getParteEmergencia(folioPEmergencia)
                 if (parteEmergencia != null) {
-                    val (moviles, voluntarios) = dao.getParteEmergenciaWithRelations(folioPEmergencia)
+                    val (moviles, voluntarios, materialesP) = dao.getParteEmergenciaWithRelations(folioPEmergencia)
                     val response = ParteEmergenciaResponse(
                         folioPEmergencia = parteEmergencia.folioPEmergencia,
                         horaInicio = parteEmergencia.horaInicio,
@@ -85,10 +85,9 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
                         claveEmergencia = dao.getClaveEmergencia(parteEmergencia.idClaveEmergencia),
                         folioPAsistencia = parteEmergencia.folioPAsistencia,
                         parteAsistencia = parteEmergencia.folioPAsistencia?.let { dao.getParteAsistenciaResponse(it) },
-                        idMaterialP = parteEmergencia.idMaterialP,
-                        materialesP = parteEmergencia.idMaterialP?.let { dao.getMaterialP(it) },
                         voluntarios = voluntarios,
-                        moviles = moviles
+                        moviles = moviles,
+                        materialesP = materialesP,
                     )
                     call.respond(HttpStatusCode.OK, response)
                 } else {
@@ -223,7 +222,7 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
                 }
 
                 // Obtén las relaciones del Parte de Asistencia
-                val (moviles, voluntarios) = dao.getParteEmergenciaWithRelations(folioPEmergencia)
+                val (moviles, voluntarios, materialesP) = dao.getParteEmergenciaWithRelations(folioPEmergencia)
 
                 // Construye la respuesta usando el modelo ParteAsistenciaResponse
                 val response = ParteEmergenciaResponse(
@@ -241,7 +240,7 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
                     claveEmergencia = dao.getClaveEmergencia(parteEmergencia.idClaveEmergencia),
                     folioPAsistencia = parteEmergencia.folioPAsistencia,
                     parteAsistencia = parteEmergencia.folioPAsistencia?.let { dao.getParteAsistenciaResponse(it) },
-                    idMaterialP = parteEmergencia.idMaterialP,
+                    materialesP = materialesP,
                     moviles = moviles,
                     voluntarios = voluntarios
                 )
@@ -290,7 +289,7 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
                         idMaterialP = parteEmergencia.idMaterialP
                     )
                 }
-                val (moviles, voluntarios) = dao.getParteEmergenciaWithRelations(resultado.folioPEmergencia!!)
+                val (moviles, voluntarios, materialesP) = dao.getParteEmergenciaWithRelations(resultado.folioPEmergencia!!)
                 val response = ParteEmergenciaResponse(
                     folioPEmergencia = resultado.folioPEmergencia,
                     horaInicio = resultado.horaInicio,
@@ -306,8 +305,7 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
                     claveEmergencia = dao.getClaveEmergencia(resultado.idClaveEmergencia),
                     folioPAsistencia = resultado.folioPAsistencia,
                     parteAsistencia = resultado.folioPAsistencia?.let { dao.getParteAsistenciaResponse(it) },
-                    idMaterialP = resultado.idMaterialP,
-                    materialesP = resultado.idMaterialP?.let { dao.getMaterialP(it) },
+                    materialesP = materialesP,
                     voluntarios = voluntarios,
                     moviles = moviles
                 )
@@ -325,5 +323,7 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
 
     }
 }
+
+
 
 
