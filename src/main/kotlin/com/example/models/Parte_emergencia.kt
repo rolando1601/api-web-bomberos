@@ -20,7 +20,8 @@ data class Partes_emergencia(
     val idOficial: Int,
     val idClaveEmergencia: Int,
     val folioPAsistencia: Int? = null,
-    val idMaterialP: Int? = null
+    val idMaterialP: Int? = null,
+    val parteAsistencia: Partes_asistencia? = null,
 )
 
 object Parte_emergencia : Table() {

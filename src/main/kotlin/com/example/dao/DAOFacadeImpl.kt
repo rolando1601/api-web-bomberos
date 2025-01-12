@@ -1,6 +1,7 @@
 package com.example.dao
 
 
+import Quadruple
 import com.example.dao.DatabaseSingleton.dbQuery
 import com.example.models.*
 import kotlinx.datetime.LocalDate
@@ -806,7 +807,6 @@ class DAOFacadeImpl : DAOFacade {
         idOficial: Int,
         idClaveEmergencia: Int,
         folioPAsistencia: Int?,
-        idMaterialP: Int? // Nuevo parámetro opcional
     ): Partes_emergencia = transaction {
         // Insertar el Parte de Emergencia
         val insertStatement = Parte_emergencia.insert {
@@ -825,13 +825,6 @@ class DAOFacadeImpl : DAOFacade {
         val folioPEmergencia = insertStatement.resultedValues?.get(0)?.get(Parte_emergencia.folioPEmergencia)
             ?: throw IllegalStateException("No se pudo obtener el folio generado")
 
-        // Si se proporciona idMaterialP, inserta en la tabla intermedia
-        if (idMaterialP != null) {
-            ParteEmergenciaMaterial.insert {
-                it[this.folioPEmergencia] = folioPEmergencia
-                it[this.idMaterialP] = idMaterialP
-            }
-        }
 
         // Retornar el Parte de Emergencia creado
         Partes_emergencia(
@@ -866,7 +859,6 @@ class DAOFacadeImpl : DAOFacade {
         idOficial: Int,
         idClaveEmergencia: Int,
         folioPAsistencia: Int?,
-        idMaterialP: Int? // Nuevo parámetro opcional
     ): Partes_emergencia = transaction {
         val rowsUpdated = Parte_emergencia.update({ Parte_emergencia.folioPEmergencia eq folioPEmergencia }) {
             it[this.horaInicio] = horaInicio
@@ -879,13 +871,6 @@ class DAOFacadeImpl : DAOFacade {
             it[this.idOficial] = idOficial
             it[this.idClaveEmergencia] = idClaveEmergencia
             it[this.folioPAsistencia] = folioPAsistencia
-        }
-        // Si se proporciona idMaterialP, inserta en la tabla intermedia
-        if (idMaterialP != null) {
-            ParteEmergenciaMaterial.update {
-                it[this.folioPEmergencia] = folioPEmergencia
-                it[this.idMaterialP] = idMaterialP
-            }
         }
         if (rowsUpdated == 0) throw IllegalArgumentException("ParteEmergencia con folio $folioPEmergencia no encontrado")
 
@@ -904,7 +889,7 @@ class DAOFacadeImpl : DAOFacade {
         )
     }
 
-    override suspend fun getParteEmergenciaWithRelations(folioPEmergencia: Int): Triple<List<Moviles>, List<Voluntarios>, List<MaterialesP>> {
+    override suspend fun getParteEmergenciaWithRelations(folioPEmergencia: Int): Quadruple<List<Moviles>, List<Voluntarios>, List<MaterialesP>, Partes_asistencia?> {
         // Primero obtiene el Parte de Emergencia dentro de un bloque transaction
         val parteEmergencia = transaction {
             Parte_emergencia.select { Parte_emergencia.folioPEmergencia eq folioPEmergencia }
@@ -915,9 +900,10 @@ class DAOFacadeImpl : DAOFacade {
         val moviles = getMovilesPorParteEmergencia(folioPEmergencia)
         val voluntarios = getVoluntariosPorParteEmergencia(folioPEmergencia)
         val materialP = getMaterialPByParteEmergencia(folioPEmergencia)
+        val parteasistencia = parteEmergencia.folioPAsistencia?.let { getParteAsistencia(it) }
 
         // Retorna las relaciones
-        return Triple(moviles, voluntarios, materialP)
+        return Quadruple(moviles, voluntarios, materialP, parteasistencia)
     }
 
     override suspend fun getMaterialPByParteEmergencia(folioPEmergencia: Int): List<MaterialesP> = transaction {
@@ -1218,6 +1204,14 @@ class DAOFacadeImpl : DAOFacade {
                 .mapNotNull(::resultToParteEmergenciaVoluntario)
                 .singleOrNull()
         }
+
+
+
+
+
+
+
+
 
     override suspend fun createParteEmergenciaVoluntario(
         folioPEmergencia: Int,
@@ -1541,6 +1535,12 @@ class DAOFacadeImpl : DAOFacade {
                 .singleOrNull()
         }
 
+
+
+
+
+
+
     override suspend fun createParteEmergenciaMaterial(
         folioPEmergencia: Int,
         idMaterialP: Int
@@ -1550,12 +1550,12 @@ class DAOFacadeImpl : DAOFacade {
             it[this.idMaterialP] = idMaterialP
         }
 
-        val idparteemergenciamaterialp =
+        val idParteMaterial =
             insertStatement.resultedValues?.get(0)?.get(ParteEmergenciaMaterial.idParteAsistenciaMaterialP)
                 ?: throw IllegalStateException("No se pudo obtener el ID del parte emergencia material generado")
 
         PartesEmergenciaMateriales(
-            idparteemergenciamaterialp = idparteemergenciamaterialp,
+            idparteemergenciamaterialp = idParteMaterial,
             folioPEmergencia = folioPEmergencia,
             idMaterialP = idMaterialP
         )
@@ -1679,6 +1679,34 @@ class DAOFacadeImpl : DAOFacade {
 
 
     //Funciones extras
+
+
+    // Eliminar todas las asociaciones de móviles para un parte de asistencia
+    suspend fun deleteParteAsistenciaMoviles(folioPAsistencia: Int): Boolean = transaction {
+        ParteAsistenciaMovil.deleteWhere { ParteAsistenciaMovil.folioPAsistencia eq folioPAsistencia } > 0
+    }
+
+    // Eliminar todas las asociaciones de voluntarios para un parte de asistencia
+    suspend fun deleteParteAsistenciaVoluntarios(folioPAsistencia: Int): Boolean = transaction {
+        ParteAsistenciaVoluntario.deleteWhere { ParteAsistenciaVoluntario.folioPAsistencia eq folioPAsistencia } > 0
+    }
+
+    // Eliminar todas las asociaciones de móviles para un parte de emergencia
+    suspend fun deleteParteEmergenciaMoviles(folioPEmergencia: Int): Boolean = transaction {
+        ParteEmergenciaMovil.deleteWhere { ParteEmergenciaMovil.folioPEmergencia eq folioPEmergencia } > 0
+    }
+
+    // Eliminar todas las asociaciones de voluntarios para un parte de emergencia
+    suspend fun deleteParteEmergenciaVoluntarios(folioPEmergencia: Int): Boolean = transaction {
+        ParteEmergenciaVoluntario.deleteWhere { ParteEmergenciaVoluntario.folioPEmergencia eq folioPEmergencia } > 0
+    }
+
+    // Eliminar todas las asociaciones de materiales para un parte de emergencia
+    suspend fun deleteParteEmergenciaMateriales(folioPEmergencia: Int): Boolean = transaction {
+        ParteEmergenciaMaterial.deleteWhere { ParteEmergenciaMaterial.folioPEmergencia eq folioPEmergencia } > 0
+    }
+
+
 
 
 }

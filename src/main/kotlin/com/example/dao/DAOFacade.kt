@@ -1,5 +1,6 @@
 package com.example.dao
 
+import Quadruple
 import com.example.models.*
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
@@ -77,10 +78,11 @@ interface DAOFacade {
     // Partes_emergencia
     suspend fun allPartesEmergencia(): List<Partes_emergencia>
     suspend fun getParteEmergencia(folioPEmergencia: Int): Partes_emergencia?
-    suspend fun createParteEmergencia(horaInicio: LocalTime, horaFin: LocalTime, fechaEmergencia: LocalDate, preInforme: String, llamarEmpresaQuimica: Boolean, descripcionMaterialP: String, direccionEmergencia: String, idOficial: Int, idClaveEmergencia: Int, folioPAsistencia: Int?, idMaterialP: Int?): Partes_emergencia
+    suspend fun createParteEmergencia(horaInicio: LocalTime, horaFin: LocalTime, fechaEmergencia: LocalDate, preInforme: String, llamarEmpresaQuimica: Boolean, descripcionMaterialP: String, direccionEmergencia: String, idOficial: Int, idClaveEmergencia: Int, folioPAsistencia: Int?): Partes_emergencia
     suspend fun deleteParteEmergencia(folioPEmergencia: Int): Boolean
-    suspend fun updateParteEmergencia(folioPEmergencia: Int, horaInicio: LocalTime, horaFin: LocalTime, fechaEmergencia: LocalDate, preInforme: String, llamarEmpresaQuimica: Boolean, descripcionMaterialP: String, direccionEmergencia: String, idOficial: Int, idClaveEmergencia: Int, folioPAsistencia: Int?,idMaterialP: Int?): Partes_emergencia
-    suspend fun getParteEmergenciaWithRelations(folioPEmergencia: Int): Triple<List<Moviles>, List<Voluntarios>, List<MaterialesP>>
+    suspend fun updateParteEmergencia(folioPEmergencia: Int, horaInicio: LocalTime, horaFin: LocalTime, fechaEmergencia: LocalDate, preInforme: String, llamarEmpresaQuimica: Boolean, descripcionMaterialP: String, direccionEmergencia: String, idOficial: Int, idClaveEmergencia: Int, folioPAsistencia: Int?): Partes_emergencia
+    suspend fun getParteEmergenciaWithRelations(folioPEmergencia: Int): Quadruple<List<Moviles>, List<Voluntarios>, List<MaterialesP>, Partes_asistencia?>
+
 
     // Partes_asistencia
     suspend fun allPartesAsistencia(): List<Partes_asistencia>
