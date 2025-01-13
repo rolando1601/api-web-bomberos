@@ -8,19 +8,19 @@ import org.jetbrains.exposed.sql.kotlin.datetime.time
 @Serializable
 data class Instituciones(
     val idInstitucion: Int? = null,
-    val nombreInstitucion: String,
-    val tipoInstitucion: String,
-    val nombrePersonaCargo: String,
-    val horaLlegada: LocalTime,
+    val nombreInstitucion: String? = null,
+    val tipoInstitucion: String? = null,
+    val nombrePersonaCargo: String? = null,
+    val horaLlegada: LocalTime? = null,
     val folioPEmergencia: Int?
 )
 
 object Institucion : Table() {
     val idInstitucion = integer("idInstitucion").autoIncrement()
-    val nombreInstitucion = varchar("nombreInstitucion", 255)
-    val tipoInstitucion = varchar("tipoInstitucion", 100)
-    val nombrePersonaCargo = varchar("nombrePersonaCargo", 255)
-    val horaLlegada = time("horaLlegada")
+    val nombreInstitucion = varchar("nombreInstitucion", 255).nullable()
+    val tipoInstitucion = varchar("tipoInstitucion", 100).nullable()
+    val nombrePersonaCargo = varchar("nombrePersonaCargo", 255).nullable()
+    val horaLlegada = time("horaLlegada").nullable()
     val folioPEmergencia = integer("folioPEmergencia").references(Parte_emergencia.folioPEmergencia).nullable()
 
     override val primaryKey = PrimaryKey(idInstitucion)

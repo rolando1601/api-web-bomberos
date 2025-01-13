@@ -31,14 +31,16 @@ fun Route.institucionRoutes(dao: DAOFacadeImpl) {
             try {
                 val institucion = call.receive<Instituciones>()
 
-                val createdInstitucion = dao.createInstitucion(
-                    nombreInstitucion = institucion.nombreInstitucion,
-                    tipoInstitucion = institucion.tipoInstitucion,
-                    nombrePersonaCargo = institucion.nombrePersonaCargo,
-                    horaLlegada = institucion.horaLlegada,
-                    folioPEmergencia = institucion.folioPEmergencia
-                )
-                call.respond(HttpStatusCode.Created, createdInstitucion)
+                val createdInstitucion = institucion.folioPEmergencia?.let {
+                    dao.createInstitucion(
+                        nombreInstitucion = institucion.nombreInstitucion,
+                        tipoInstitucion = institucion.tipoInstitucion,
+                        nombrePersonaCargo = institucion.nombrePersonaCargo,
+                        horaLlegada = institucion.horaLlegada,
+                        folioPEmergencia = it
+                    )
+                }
+                call.respond(HttpStatusCode.Created)
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al crear institución: ${e.message}"))
             }
@@ -63,28 +65,7 @@ fun Route.institucionRoutes(dao: DAOFacadeImpl) {
             }
         }
 
-        // Actualizar una institución (PUT /institucion/actualizar/{idInstitucion})
-        put("/actualizar/{idInstitucion}") {
-            val idInstitucion = call.parameters["idInstitucion"]?.toIntOrNull()
-            if (idInstitucion == null) {
-                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "ID de institución inválido o faltante."))
-                return@put
-            }
-            try {
-                val institucion = call.receive<Instituciones>()
-                val updatedInstitucion = dao.updateInstitucion(
-                    idInstitucion = idInstitucion,
-                    nombreInstitucion = institucion.nombreInstitucion,
-                    tipoInstitucion = institucion.tipoInstitucion,
-                    nombrePersonaCargo = institucion.nombrePersonaCargo,
-                    horaLlegada = institucion.horaLlegada,
-                    folioPEmergencia = institucion.folioPEmergencia
-                )
-                call.respond(HttpStatusCode.OK, updatedInstitucion)
-            } catch (e: Exception) {
-                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al actualizar institución: ${e.message}"))
-            }
-        }
+
 
         // Eliminar una institución (DELETE /institucion/eliminar/{idInstitucion})
         delete("/eliminar/{idInstitucion}") {

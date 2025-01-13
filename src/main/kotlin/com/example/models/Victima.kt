@@ -17,7 +17,7 @@ object Victima : Table() {
     val idVictima = integer("idVictima").autoIncrement()
     val rutVictima = varchar("rutVictima", 12).nullable()
     val nombreVictima = varchar("nombreVictima", 255).nullable()
-    val edadVictima = varchar("edadVictima", 3).nullable()
+    val edadVictima = varchar("edadVictima", 100).nullable()
     val descripcion = text("descripcion").nullable()
     val folioPEmergencia = integer("folioPEmergencia").references(Parte_emergencia.folioPEmergencia)
 

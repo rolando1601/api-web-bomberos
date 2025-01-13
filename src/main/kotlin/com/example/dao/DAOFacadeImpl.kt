@@ -36,11 +36,11 @@ class DAOFacadeImpl : DAOFacade {
     }
 
     override suspend fun createInstitucion(
-        nombreInstitucion: String,
-        tipoInstitucion: String,
-        nombrePersonaCargo: String,
-        horaLlegada: LocalTime,
-        folioPEmergencia: Int?
+        nombreInstitucion: String?,
+        tipoInstitucion: String?,
+        nombrePersonaCargo: String?,
+        horaLlegada: LocalTime?,
+        folioPEmergencia: Int
     ): Instituciones = transaction {
         val insertStatement = Institucion.insert {
             it[this.nombreInstitucion] = nombreInstitucion
@@ -69,11 +69,11 @@ class DAOFacadeImpl : DAOFacade {
 
     override suspend fun updateInstitucion(
         idInstitucion: Int,
-        nombreInstitucion: String,
-        tipoInstitucion: String,
-        nombrePersonaCargo: String,
-        horaLlegada: LocalTime,
-        folioPEmergencia: Int?
+        nombreInstitucion: String?,
+        tipoInstitucion: String?,
+        nombrePersonaCargo: String?,
+        horaLlegada: LocalTime?,
+        folioPEmergencia: Int
     ): Instituciones = transaction {
         val rowsUpdated = Institucion.update({ Institucion.idInstitucion eq idInstitucion }) {
             it[this.nombreInstitucion] = nombreInstitucion
@@ -559,10 +559,10 @@ class DAOFacadeImpl : DAOFacade {
     }
 
     override suspend fun createInmueble(
-        direccion: String,
-        tipoInmueble: String,
-        estadoInmueble: String,
-        folioPEmergencia: Int?
+        direccion: String?,
+        tipoInmueble: String?,
+        estadoInmueble: String?,
+        folioPEmergencia: Int
     ): Inmuebles = transaction {
         val insertStatement = Inmueble.insert {
             it[this.direccion] = direccion
@@ -589,10 +589,10 @@ class DAOFacadeImpl : DAOFacade {
 
     override suspend fun updateInmueble(
         idInmueble: Int,
-        direccion: String,
-        tipoInmueble: String,
-        estadoInmueble: String,
-        folioPEmergencia: Int?
+        direccion: String?,
+        tipoInmueble: String?,
+        estadoInmueble: String?,
+        folioPEmergencia: Int
     ): Inmuebles = transaction {
         val rowsUpdated = Inmueble.update({ Inmueble.idInmueble eq idInmueble }) {
             it[this.direccion] = direccion
@@ -698,11 +698,11 @@ class DAOFacadeImpl : DAOFacade {
     }
 
     override suspend fun createVehiculo(
-        patente: String,
-        marca: String,
-        modelo: String,
-        tipoVehiculo: String,
-        folioPEmergencia: Int?
+        patente: String?,
+        marca: String?,
+        modelo: String?,
+        tipoVehiculo: String?,
+        folioPEmergencia: Int
     ): Vehiculos = transaction {
         val insertStatement = Vehiculo.insert {
             it[this.patente] = patente
@@ -732,11 +732,11 @@ class DAOFacadeImpl : DAOFacade {
 
     override suspend fun updateVehiculo(
         idVehiculo: Int,
-        patente: String,
+        patente: String?,
         marca: String,
-        modelo: String,
-        tipoVehiculo: String,
-        folioPEmergencia: Int?
+        modelo: String?,
+        tipoVehiculo: String?,
+        folioPEmergencia: Int
     ): Vehiculos = transaction {
         val rowsUpdated = Vehiculo.update({ Vehiculo.idVehiculo eq idVehiculo }) {
             it[this.patente] = patente
@@ -1894,6 +1894,48 @@ class DAOFacadeImpl : DAOFacade {
                     edadVictima = it[Victima.edadVictima],
                     descripcion = it[Victima.descripcion],
                     folioPEmergencia = it[Victima.folioPEmergencia]
+                )
+            }
+    }
+
+    //getVehiculosByFolio(folioPEmergencia)
+    override suspend fun getVehiculosByFolio(folioPEmergencia: Int): List<Vehiculos> = transaction {
+        Vehiculo.select { Vehiculo.folioPEmergencia eq folioPEmergencia }
+            .map {
+                Vehiculos(
+                    idVehiculo = it[Vehiculo.idVehiculo],
+                    patente = it[Vehiculo.patente],
+                    marca = it[Vehiculo.marca],
+                    modelo = it[Vehiculo.modelo],
+                    tipoVehiculo = it[Vehiculo.tipoVehiculo],
+                    folioPEmergencia = it[Vehiculo.folioPEmergencia]
+                )
+            }
+    }
+    //getInstitucionesByFolio(folioPEmergencia)
+    override suspend fun getInstitucionesByFolio(folioPEmergencia: Int): List<Instituciones> = transaction {
+        Institucion.select { Institucion.folioPEmergencia eq folioPEmergencia }
+            .map {
+                Instituciones(
+                    idInstitucion = it[Institucion.idInstitucion],
+                    nombreInstitucion = it[Institucion.nombreInstitucion],
+                    tipoInstitucion = it[Institucion.tipoInstitucion],
+                    nombrePersonaCargo = it[Institucion.nombrePersonaCargo],
+                    horaLlegada = it[Institucion.horaLlegada],
+                    folioPEmergencia = it[Institucion.folioPEmergencia]
+                )
+            }
+    }
+    //getInmueblesByFolio(folioPEmergencia)
+    override suspend fun getInmueblesByFolio(folioPEmergencia: Int): List<Inmuebles> = transaction {
+        Inmueble.select { Inmueble.folioPEmergencia eq folioPEmergencia }
+            .map {
+                Inmuebles(
+                    idInmueble = it[Inmueble.idInmueble],
+                    direccion = it[Inmueble.direccion],
+                    tipoInmueble = it[Inmueble.tipoInmueble],
+                    estadoInmueble = it[Inmueble.estadoInmueble],
+                    folioPEmergencia = it[Inmueble.folioPEmergencia]
                 )
             }
     }

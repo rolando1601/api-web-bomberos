@@ -26,22 +26,7 @@ fun Route.inmuebleRoutes(dao: DAOFacadeImpl) {
             }
         }
 
-        // Crear un nuevo inmueble (POST /inmueble/crear)
-        post("/crear") {
-            try {
-                val inmueble = call.receive<Inmuebles>()
 
-                val createdInmueble = dao.createInmueble(
-                    direccion = inmueble.direccion,
-                    tipoInmueble = inmueble.tipoInmueble,
-                    estadoInmueble = inmueble.estadoInmueble,
-                    folioPEmergencia = inmueble.folioPEmergencia
-                )
-                call.respond(HttpStatusCode.Created, createdInmueble)
-            } catch (e: Exception) {
-                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al crear inmueble: ${e.message}"))
-            }
-        }
 
         // Obtener un inmueble por ID (GET /inmueble/{idInmueble})
         get("/{idInmueble}") {
@@ -62,27 +47,7 @@ fun Route.inmuebleRoutes(dao: DAOFacadeImpl) {
             }
         }
 
-        // Actualizar un inmueble (PUT /inmueble/actualizar/{idInmueble})
-        put("/actualizar/{idInmueble}") {
-            val idInmueble = call.parameters["idInmueble"]?.toIntOrNull()
-            if (idInmueble == null) {
-                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "ID de inmueble inválido o faltante."))
-                return@put
-            }
-            try {
-                val inmueble = call.receive<Inmuebles>()
-                val updatedInmueble = dao.updateInmueble(
-                    idInmueble = idInmueble,
-                    direccion = inmueble.direccion,
-                    tipoInmueble = inmueble.tipoInmueble,
-                    estadoInmueble = inmueble.estadoInmueble,
-                    folioPEmergencia = inmueble.folioPEmergencia
-                )
-                call.respond(HttpStatusCode.OK, updatedInmueble)
-            } catch (e: Exception) {
-                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al actualizar inmueble: ${e.message}"))
-            }
-        }
+
 
         // Eliminar un inmueble (DELETE /inmueble/eliminar/{idInmueble})
         delete("/eliminar/{idInmueble}") {

@@ -5,8 +5,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class InstitucionRequest(
-    val nombreInstitucion: String,
-    val tipoInstitucion: String,
-    val nombrePersonaCargo: String,
-    val horaLlegada: LocalTime
+    val nombreInstitucion: String?,
+    val tipoInstitucion: String?,
+    val nombrePersonaCargo: String?,
+    val horaLlegada: LocalTime?
 )

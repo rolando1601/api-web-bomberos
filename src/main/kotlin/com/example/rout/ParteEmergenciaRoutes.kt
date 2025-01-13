@@ -89,6 +89,10 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
                         moviles = moviles,
                         materialesP = materialesP,
                         victimas = dao.getVictimasByFolio(folioPEmergencia),
+                        vehiculos = dao.getVehiculosByFolio(folioPEmergencia),
+                        instituciones = dao.getInstitucionesByFolio(folioPEmergencia),
+                        inmuebles = dao.getInmueblesByFolio(folioPEmergencia)
+
                     )
                     call.respond(HttpStatusCode.OK, response)
                 } else {
@@ -197,7 +201,11 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
                     parteAsistencia = parteEmergencia.folioPAsistencia?.let { dao.getParteAsistencia(it) },
                     materialesP = materialesP,
                     moviles = moviles,
-                    voluntarios = voluntarios
+                    voluntarios = voluntarios,
+                    victimas = dao.getVictimasByFolio(folioPEmergencia),
+                    vehiculos = dao.getVehiculosByFolio(folioPEmergencia),
+                    instituciones = dao.getInstitucionesByFolio(folioPEmergencia),
+                    inmuebles = dao.getInmueblesByFolio(folioPEmergencia)
                 )
 
                 call.respond(HttpStatusCode.OK, response)
@@ -433,7 +441,12 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
                     parteAsistencia = parteAsistencia,
                     materialesP = materialesP,
                     voluntarios = voluntarios,
-                    moviles = moviles
+                    moviles = moviles,
+                    victimas = dao.getVictimasByFolio(resultado.folioPEmergencia!!),
+                    vehiculos = dao.getVehiculosByFolio(resultado.folioPEmergencia!!),
+                    instituciones = dao.getInstitucionesByFolio(resultado.folioPEmergencia!!),
+                    inmuebles = dao.getInmueblesByFolio(resultado.folioPEmergencia!!)
+
                 )
 
                 // Responder con éxito

@@ -4,8 +4,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class VehiculoRequest(
-    val patente: String,
-    val marca: String,
-    val modelo: String,
-    val tipoVehiculo: String
+    val patente: String?,
+    val marca: String?,
+    val modelo: String?,
+    val tipoVehiculo: String?
 )

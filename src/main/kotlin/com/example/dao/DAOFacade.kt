@@ -10,9 +10,9 @@ interface DAOFacade {
     // Institucion
     suspend fun allInstituciones(): List<Instituciones>
     suspend fun getInstitucion(idInstitucion: Int): Instituciones?
-    suspend fun createInstitucion( nombreInstitucion: String, tipoInstitucion: String, nombrePersonaCargo: String, horaLlegada: LocalTime, folioPEmergencia: Int?): Instituciones
+    suspend fun createInstitucion( nombreInstitucion: String?, tipoInstitucion: String?, nombrePersonaCargo: String?, horaLlegada: LocalTime?, folioPEmergencia: Int): Instituciones
     suspend fun deleteInstitucion(idInstitucion: Int): Boolean
-    suspend fun updateInstitucion(idInstitucion: Int, nombreInstitucion: String, tipoInstitucion: String, nombrePersonaCargo: String, horaLlegada: LocalTime, folioPEmergencia: Int?): Instituciones
+    suspend fun updateInstitucion(idInstitucion: Int, nombreInstitucion: String?, tipoInstitucion: String?, nombrePersonaCargo: String?, horaLlegada: LocalTime?, folioPEmergencia: Int): Instituciones
 
     // Cuerpo
     suspend fun allCuerpos(): List<Cuerpos>
@@ -49,9 +49,9 @@ interface DAOFacade {
     // Inmueble
     suspend fun allInmuebles(): List<Inmuebles>
     suspend fun getInmueble(idInmueble: Int): Inmuebles?
-    suspend fun createInmueble(direccion: String, tipoInmueble: String, estadoInmueble: String, folioPEmergencia: Int?): Inmuebles
+    suspend fun createInmueble(direccion: String?, tipoInmueble: String?, estadoInmueble: String?, folioPEmergencia: Int): Inmuebles
     suspend fun deleteInmueble(idInmueble: Int): Boolean
-    suspend fun updateInmueble(idInmueble: Int, direccion: String, tipoInmueble: String, estadoInmueble: String, folioPEmergencia: Int?): Inmuebles
+    suspend fun updateInmueble(idInmueble: Int, direccion: String?, tipoInmueble: String?, estadoInmueble: String?, folioPEmergencia: Int): Inmuebles
 
     // Victima
     suspend fun allVictimas(): List<Victimas>
@@ -63,9 +63,9 @@ interface DAOFacade {
     // Vehiculo
     suspend fun allVehiculos(): List<Vehiculos>
     suspend fun getVehiculo(idVehiculo: Int): Vehiculos?
-    suspend fun createVehiculo( patente: String, marca: String, modelo: String, tipoVehiculo: String, folioPEmergencia: Int?): Vehiculos
+    suspend fun createVehiculo( patente: String?, marca: String?, modelo: String?, tipoVehiculo: String?, folioPEmergencia: Int): Vehiculos
     suspend fun deleteVehiculo(idVehiculo: Int): Boolean
-    suspend fun updateVehiculo(idVehiculo: Int, patente: String, marca: String, modelo: String, tipoVehiculo: String, folioPEmergencia: Int?): Vehiculos
+    suspend fun updateVehiculo(idVehiculo: Int, patente: String?, marca: String, modelo: String?, tipoVehiculo: String?, folioPEmergencia: Int): Vehiculos
 
     // ClaveEmergencias
     suspend fun allClaveEmergencias(): List<ClaveEmergencias>
@@ -183,6 +183,13 @@ interface DAOFacade {
     suspend fun deleteInmueblesByFolio(folioPEmergencia: Int): Boolean
     //getVictimasByFolio
     suspend fun getVictimasByFolio(folioPEmergencia: Int): List<Victimas>
+    //getVehiculosByFolio
+    suspend fun getVehiculosByFolio(folioPEmergencia: Int): List<Vehiculos>
+    //getInstitucionesByFolio
+    suspend fun getInstitucionesByFolio(folioPEmergencia: Int): List<Instituciones>
+    //getInmueblesByFolio
+    suspend fun getInmueblesByFolio(folioPEmergencia: Int): List<Inmuebles>
+
 
 
 }

@@ -26,23 +26,6 @@ fun Route.vehiculoRoutes(dao: DAOFacadeImpl) {
             }
         }
 
-        // Crear un nuevo vehículo (POST /vehiculo/crear)
-        post("/crear") {
-            try {
-                val vehiculo = call.receive<Vehiculos>()
-
-                val createdVehiculo = dao.createVehiculo(
-                    patente = vehiculo.patente,
-                    marca = vehiculo.marca,
-                    modelo = vehiculo.modelo,
-                    tipoVehiculo = vehiculo.tipoVehiculo,
-                    folioPEmergencia = vehiculo.folioPEmergencia
-                )
-                call.respond(HttpStatusCode.Created, createdVehiculo)
-            } catch (e: Exception) {
-                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al crear vehículo: ${e.message}"))
-            }
-        }
 
         // Obtener un vehículo por ID (GET /vehiculo/{idVehiculo})
         get("/{idVehiculo}") {
@@ -63,28 +46,7 @@ fun Route.vehiculoRoutes(dao: DAOFacadeImpl) {
             }
         }
 
-        // Actualizar un vehículo (PUT /vehiculo/actualizar/{idVehiculo})
-        put("/actualizar/{idVehiculo}") {
-            val idVehiculo = call.parameters["idVehiculo"]?.toIntOrNull()
-            if (idVehiculo == null) {
-                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "ID de vehículo inválido o faltante."))
-                return@put
-            }
-            try {
-                val vehiculo = call.receive<Vehiculos>()
-                val updatedVehiculo = dao.updateVehiculo(
-                    idVehiculo = idVehiculo,
-                    patente = vehiculo.patente,
-                    marca = vehiculo.marca,
-                    modelo = vehiculo.modelo,
-                    tipoVehiculo = vehiculo.tipoVehiculo,
-                    folioPEmergencia = vehiculo.folioPEmergencia
-                )
-                call.respond(HttpStatusCode.OK, updatedVehiculo)
-            } catch (e: Exception) {
-                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al actualizar vehículo: ${e.message}"))
-            }
-        }
+
 
         // Eliminar un vehículo (DELETE /vehiculo/eliminar/{idVehiculo})
         delete("/eliminar/{idVehiculo}") {

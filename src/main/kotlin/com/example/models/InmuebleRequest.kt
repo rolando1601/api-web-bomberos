@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class InmuebleRequest(
-    val direccion: String,
-    val tipoInmueble: String,
-    val estadoInmueble: String
+    val direccion: String?,
+    val tipoInmueble: String?,
+    val estadoInmueble: String?
 )
