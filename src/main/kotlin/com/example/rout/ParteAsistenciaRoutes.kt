@@ -135,6 +135,8 @@ fun Route.parteAsistenciaRoutes(dao: DAOFacadeImpl) {
                 return@delete
             }
             try {
+                dao.deleteParteAsistenciaMoviles(folioPAsistencia)
+                dao.deleteParteAsistenciaVoluntarios(folioPAsistencia)
                 val success = dao.deleteParteAsistencia(folioPAsistencia)
                 if (success) {
                     call.respond(HttpStatusCode.OK, mapOf("message" to "Parte de asistencia eliminado exitosamente."))
@@ -148,66 +150,6 @@ fun Route.parteAsistenciaRoutes(dao: DAOFacadeImpl) {
                 )
             }
         }
-//        // Guardar un parte de asistencia (crear o actualizar)
-//        post("/guardar") {
-//            try {
-//                val parteAsistencia = call.receive<Partes_asistencia>()
-//                val resultado = if (parteAsistencia.folioPAsistencia == null) {
-//                    dao.createParteAsistencia(
-//                        aCargoDelCuerpo = parteAsistencia.aCargoDelCuerpo,
-//                        aCargoDeLaCompania = parteAsistencia.aCargoDeLaCompania,
-//                        fechaAsistencia = parteAsistencia.fechaAsistencia,
-//                        horaInicio = parteAsistencia.horaInicio,
-//                        horaFin = parteAsistencia.horaFin,
-//                        direccionAsistencia = parteAsistencia.direccionAsistencia,
-//                        totalAsistencia = parteAsistencia.totalAsistencia,
-//                        observaciones = parteAsistencia.observaciones,
-//                        idTipoLlamado = parteAsistencia.idTipoLlamado
-//                    )
-//                } else {
-//                    dao.updateParteAsistencia(
-//                        folioPAsistencia = parteAsistencia.folioPAsistencia,
-//                        aCargoDelCuerpo = parteAsistencia.aCargoDelCuerpo,
-//                        aCargoDeLaCompania = parteAsistencia.aCargoDeLaCompania,
-//                        fechaAsistencia = parteAsistencia.fechaAsistencia,
-//                        horaInicio = parteAsistencia.horaInicio,
-//                        horaFin = parteAsistencia.horaFin,
-//                        direccionAsistencia = parteAsistencia.direccionAsistencia,
-//                        totalAsistencia = parteAsistencia.totalAsistencia,
-//                        observaciones = parteAsistencia.observaciones,
-//                        idTipoLlamado = parteAsistencia.idTipoLlamado
-//                    )
-//                }
-//                val( tipoCitacion, moviles, voluntarios) = dao.getParteAsistenciaWithRelations(resultado.folioPAsistencia!!)
-//                val response = ParteAsistenciaResponse(
-//                    folioPAsistencia = resultado.folioPAsistencia,
-//                    aCargoDelCuerpo = resultado.aCargoDelCuerpo,
-//                    encargadoCuerpo = dao.getVoluntario(resultado.aCargoDelCuerpo),
-//                    aCargoDeLaCompania = resultado.aCargoDeLaCompania,
-//                    encargadoCompania = dao.getVoluntario(resultado.aCargoDeLaCompania),
-//                    fechaAsistencia = resultado.fechaAsistencia,
-//                    horaInicio = resultado.horaInicio,
-//                    horaFin = resultado.horaFin,
-//                    direccionAsistencia = resultado.direccionAsistencia,
-//                    totalAsistencia = resultado.totalAsistencia,
-//                    observaciones = resultado.observaciones,
-//                    idTipoLlamado = resultado.idTipoLlamado,
-//                    tipoLlamado = tipoCitacion,
-//                    voluntarios = voluntarios,
-//                    moviles = moviles
-//                )
-//                call.respond(HttpStatusCode.OK, response)
-//            } catch (e: IllegalArgumentException) {
-//                call.respond(HttpStatusCode.BadRequest, mapOf("error" to e.message))
-//            } catch (e: Exception) {
-//                call.respond(
-//                    HttpStatusCode.InternalServerError,
-//                    mapOf("error" to "Error al guardar parte asistencia: ${e.message}")
-//                )
-//            }
-//        }
-
-
 
 
         get("/relaciones/{folioPAsistencia}") {

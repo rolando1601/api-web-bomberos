@@ -146,6 +146,9 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
                 return@delete
             }
             try {
+                dao.deleteParteEmergenciaVoluntarios(folioPEmergencia)
+                dao.deleteParteEmergenciaMoviles(folioPEmergencia)
+                dao.deleteParteEmergenciaMateriales(folioPEmergencia)
                 val success = dao.deleteParteEmergencia(folioPEmergencia)
                 if (success) {
                     call.respond(HttpStatusCode.OK, mapOf("message" to "Parte de emergencia eliminado exitosamente."))
@@ -159,55 +162,6 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
                 )
             }
         }
-
-//        // Ruta para guardar un parte de emergencia
-//        post("/guardar") {
-//            try {
-//                val parteEmergencia = call.receive<Partes_emergencia>()
-//
-//                // Si el folioPEmergencia es nulo, se crea un nuevo registro
-//                if (parteEmergencia.folioPEmergencia == null) {
-//                    dao.createParteEmergencia(
-//                        horaInicio = parteEmergencia.horaInicio,
-//                        horaFin = parteEmergencia.horaFin,
-//                        fechaEmergencia = parteEmergencia.fechaEmergencia,
-//                        preInforme = parteEmergencia.preInforme,
-//                        llamarEmpresaQuimica = parteEmergencia.llamarEmpresaQuimica,
-//                        descripcionMaterialP = parteEmergencia.descripcionMaterialP,
-//                        direccionEmergencia = parteEmergencia.direccionEmergencia,
-//                        idOficial = parteEmergencia.idOficial,
-//                        idClaveEmergencia = parteEmergencia.idClaveEmergencia,
-//                        folioPAsistencia = parteEmergencia.folioPAsistencia,
-//                        idMaterialP = parteEmergencia.idMaterialP
-//                    ).also {
-//                        call.respond(HttpStatusCode.Created, it)
-//                    }
-//                } else {
-//                    // Si el folioPEmergencia existe, se actualiza el registro
-//                    dao.updateParteEmergencia(
-//                        folioPEmergencia = parteEmergencia.folioPEmergencia,
-//                        horaInicio = parteEmergencia.horaInicio,
-//                        horaFin = parteEmergencia.horaFin,
-//                        fechaEmergencia = parteEmergencia.fechaEmergencia,
-//                        preInforme = parteEmergencia.preInforme,
-//                        llamarEmpresaQuimica = parteEmergencia.llamarEmpresaQuimica,
-//                        descripcionMaterialP = parteEmergencia.descripcionMaterialP,
-//                        direccionEmergencia = parteEmergencia.direccionEmergencia,
-//                        idOficial = parteEmergencia.idOficial,
-//                        idClaveEmergencia = parteEmergencia.idClaveEmergencia,
-//                        folioPAsistencia = parteEmergencia.folioPAsistencia,
-//                        idMaterialP = parteEmergencia.idMaterialP
-//                    ).also {
-//                        call.respond(HttpStatusCode.OK, it)
-//                    }
-//                }
-//            } catch (e: Exception) {
-//                call.respond(
-//                    HttpStatusCode.InternalServerError,
-//                    mapOf("error" to "Error al guardar parte de emergencia: ${e.message}")
-//                )
-//            }
-//        }
 
         get("/relaciones/{folioPEmergencia}") {
             val folioPEmergencia = call.parameters["folioPEmergencia"]?.toIntOrNull()
@@ -302,6 +256,11 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
                     dao.deleteParteEmergenciaVoluntarios(folioPEmergencia)
                     dao.deleteParteEmergenciaMateriales(folioPEmergencia)
                     //asociar nuevos moviles
+
+                    request.materialesP?.forEach { idMaterialP ->
+                        dao.createParteEmergenciaMaterial(folioPEmergencia, idMaterialP)
+                    }
+                    //asociar nuevos materiales
                     request.moviles?.forEach { idMovil ->
                         dao.createParteEmergenciaMovil(folioPEmergencia, idMovil)
                     }
@@ -309,10 +268,7 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
                     request.voluntarios?.forEach { idVoluntario ->
                         dao.createParteEmergenciaVoluntario(folioPEmergencia, idVoluntario)
                     }
-                    //asociar nuevos materiales
-                    request.materialesP?.forEach { idMaterialP ->
-                        dao.createParteEmergenciaMaterial(folioPEmergencia, idMaterialP)
-                    }
+
                 }
                     request.parteEmergencia
                 }

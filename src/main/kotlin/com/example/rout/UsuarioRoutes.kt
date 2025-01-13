@@ -1,6 +1,7 @@
 package com.example.routes
 
 import com.example.dao.DAOFacadeImpl
+import com.example.models.CreateUsuarioVoluntarioRequest
 import com.example.models.Usuarios
 import io.ktor.http.*
 import io.ktor.server.request.*
@@ -129,5 +130,24 @@ fun Route.usuarioRoutes(dao: DAOFacadeImpl) {
                 call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al intentar iniciar sesión: ${e.message}"))
             }
         }
+
+        // Ruta para crear un usuario y asignarlo a un voluntario
+        post("/crear-y-asignar") {
+            try {
+                val request = call.receive<CreateUsuarioVoluntarioRequest>()
+                val voluntarioActualizado = dao.createUsuarioYActualizarVoluntario(
+                    nombreUsuario = request.nombreUsuario,
+                    contrasena = request.contrasena,
+                    idVoluntario = request.idVoluntario
+                )
+                call.respond(HttpStatusCode.Created, voluntarioActualizado)
+            } catch (e: IllegalArgumentException) {
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to e.message))
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al crear usuario y asignar voluntario: ${e.message}"))
+            }
+        }
+
+
     }
 }

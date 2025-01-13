@@ -8,8 +8,6 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import java.util.*
-import kotlinx.datetime.LocalDateTime
 import org.jetbrains.exposed.sql.transactions.transaction
 
 
@@ -1549,11 +1547,9 @@ class DAOFacadeImpl : DAOFacade {
             it[this.folioPEmergencia] = folioPEmergencia
             it[this.idMaterialP] = idMaterialP
         }
-
         val idParteMaterial =
             insertStatement.resultedValues?.get(0)?.get(ParteEmergenciaMaterial.idParteAsistenciaMaterialP)
                 ?: throw IllegalStateException("No se pudo obtener el ID del parte emergencia material generado")
-
         PartesEmergenciaMateriales(
             idparteemergenciamaterialp = idParteMaterial,
             folioPEmergencia = folioPEmergencia,
@@ -1705,6 +1701,70 @@ class DAOFacadeImpl : DAOFacade {
     suspend fun deleteParteEmergenciaMateriales(folioPEmergencia: Int): Boolean = transaction {
         ParteEmergenciaMaterial.deleteWhere { ParteEmergenciaMaterial.folioPEmergencia eq folioPEmergencia } > 0
     }
+
+
+    // ajuste para usuario
+
+    suspend fun createUsuarioYActualizarVoluntario(
+        nombreUsuario: String,
+        contrasena: String,
+        idVoluntario: Int
+    ): Voluntarios {
+        // Verifica si el voluntario existe
+        val voluntarioExistente = getVoluntario(idVoluntario) ?: throw IllegalArgumentException("Voluntario no encontrado")
+
+        // Verifica si el nombre de usuario ya existe
+        if (existeNombreUsuario(nombreUsuario)) {
+            throw IllegalArgumentException("El nombre de usuario '$nombreUsuario' ya está en uso.")
+        }
+
+        // Si el voluntario ya tiene un usuario asociado, elimínalo de forma segura
+        if (voluntarioExistente.idUsuario != null) {
+            // Actualiza el voluntario para desvincular el usuario
+            updateVoluntarioUsuario(idVoluntario, null)
+
+            // Ahora elimina el usuario asociado
+            deleteUsuario(voluntarioExistente.idUsuario)
+        }
+
+        // Crea el nuevo usuario
+        val nuevoUsuario = createUsuario(nombreUsuario, contrasena)
+
+        // Actualiza el voluntario con el nuevo idUsuario
+        return updateVoluntarioUsuario(idVoluntario, nuevoUsuario.idUsuario!!)
+    }
+
+
+    private suspend fun updateVoluntarioUsuario(idVoluntario: Int, idUsuario: Int?): Voluntarios {
+        // Busca el voluntario existente
+        val voluntarioExistente = getVoluntario(idVoluntario) ?: throw IllegalArgumentException("Voluntario no encontrado")
+
+        // Actualiza solo el idUsuario del voluntario
+        return updateVoluntario(
+            idVoluntario = voluntarioExistente.idVoluntario!!,
+            nombreVol = voluntarioExistente.nombreVol,
+            fechaNac = voluntarioExistente.fechaNac,
+            direccion = voluntarioExistente.direccion,
+            numeroContacto = voluntarioExistente.numeroContacto,
+            tipoSangre = voluntarioExistente.tipoSangre,
+            enfermedades = voluntarioExistente.enfermedades,
+            alergias = voluntarioExistente.alergias,
+            fechaIngreso = voluntarioExistente.fechaIngreso,
+            claveRadial = voluntarioExistente.claveRadial,
+            rutVoluntario = voluntarioExistente.rutVoluntario,
+            idCompania = voluntarioExistente.idCompania,
+            idUsuario = idUsuario,  // Asigna el nuevo idUsuario
+            idCargo = voluntarioExistente.idCargo,
+            apellidop = voluntarioExistente.apellidop,
+            apellidom = voluntarioExistente.apellidom,
+            activo = voluntarioExistente.activo
+        )
+    }
+
+    suspend fun existeNombreUsuario(nombreUsuario: String): Boolean = transaction {
+        Usuario.select { Usuario.nombreUsuario eq nombreUsuario }.count() > 0
+    }
+
 
 
 
