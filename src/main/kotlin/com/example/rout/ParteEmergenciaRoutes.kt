@@ -88,6 +88,7 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
                         voluntarios = voluntarios,
                         moviles = moviles,
                         materialesP = materialesP,
+                        victimas = dao.getVictimasByFolio(folioPEmergencia),
                     )
                     call.respond(HttpStatusCode.OK, response)
                 } else {

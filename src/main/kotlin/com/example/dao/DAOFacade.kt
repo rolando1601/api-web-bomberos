@@ -56,9 +56,9 @@ interface DAOFacade {
     // Victima
     suspend fun allVictimas(): List<Victimas>
     suspend fun getVictima(idVictima: Int): Victimas?
-    suspend fun createVictima( rutVictima: String, nombreVictima: String, edadVictima: Int, descripcion: String, folioPEmergencia: Int): Victimas
+    suspend fun createVictima( rutVictima: String?, nombreVictima: String?, edadVictima: String?, descripcion: String?, folioPEmergencia: Int): Victimas
     suspend fun deleteVictima(idVictima: Int): Boolean
-    suspend fun updateVictima(idVictima: Int, rutVictima: String, nombreVictima: String, edadVictima: Int, descripcion: String, folioPEmergencia: Int): Victimas
+    suspend fun updateVictima(idVictima: Int, rutVictima: String?, nombreVictima: String?, edadVictima: String?, descripcion: String?, folioPEmergencia: Int): Victimas
 
     // Vehiculo
     suspend fun allVehiculos(): List<Vehiculos>
@@ -181,6 +181,8 @@ interface DAOFacade {
     suspend fun deleteInstitucionesByFolio(folioPEmergencia: Int): Boolean
     //deleteInmueblesByFolio
     suspend fun deleteInmueblesByFolio(folioPEmergencia: Int): Boolean
+    //getVictimasByFolio
+    suspend fun getVictimasByFolio(folioPEmergencia: Int): List<Victimas>
 
 
 }

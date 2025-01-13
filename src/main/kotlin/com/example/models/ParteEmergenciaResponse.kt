@@ -22,6 +22,7 @@ data class ParteEmergenciaResponse(
     val parteAsistencia: Partes_asistencia? = null,
     val materialesP: List<MaterialesP>? = null,
     val voluntarios: List<Voluntarios>? = null,
-    val moviles: List<Moviles>? = null
+    val moviles: List<Moviles>? = null,
+    val victimas: List<Victimas>? = null
 
 )

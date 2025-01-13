@@ -627,10 +627,10 @@ class DAOFacadeImpl : DAOFacade {
     }
 
     override suspend fun createVictima(
-        rutVictima: String,
-        nombreVictima: String,
-        edadVictima: Int,
-        descripcion: String,
+        rutVictima: String?,
+        nombreVictima: String?,
+        edadVictima: String?,
+        descripcion: String?,
         folioPEmergencia: Int
     ): Victimas = transaction {
         val insertStatement = Victima.insert {
@@ -660,10 +660,10 @@ class DAOFacadeImpl : DAOFacade {
 
     override suspend fun updateVictima(
         idVictima: Int,
-        rutVictima: String,
-        nombreVictima: String,
-        edadVictima: Int,
-        descripcion: String,
+        rutVictima: String?,
+        nombreVictima: String?,
+        edadVictima: String?,
+        descripcion: String?,
         folioPEmergencia: Int
     ): Victimas = transaction {
         val rowsUpdated = Victima.update({ Victima.idVictima eq idVictima }) {
@@ -1819,6 +1819,8 @@ class DAOFacadeImpl : DAOFacade {
         }
     }
 
+
+
     //crea vehiculos en la base de datos y las asocia a un parte de emergencia
     override suspend fun createVehiculos(vehiculos: List<Vehiculos>, folioPEmergencia: Int): List<Vehiculos> = transaction {
         val insertStatement = Vehiculo.batchInsert(vehiculos) { vehiculo ->
@@ -1880,6 +1882,20 @@ class DAOFacadeImpl : DAOFacade {
     //deleteInmueblesByFolio
     override suspend fun deleteInmueblesByFolio(folioPEmergencia: Int): Boolean = transaction {
         Inmueble.deleteWhere { Inmueble.folioPEmergencia eq folioPEmergencia } > 0
+    }
+    //getVictimasByFolio(folioPEmergencia)
+    override suspend fun getVictimasByFolio(folioPEmergencia: Int): List<Victimas> = transaction {
+        Victima.select { Victima.folioPEmergencia eq folioPEmergencia }
+            .map {
+                Victimas(
+                    idVictima = it[Victima.idVictima],
+                    rutVictima = it[Victima.rutVictima],
+                    nombreVictima = it[Victima.nombreVictima],
+                    edadVictima = it[Victima.edadVictima],
+                    descripcion = it[Victima.descripcion],
+                    folioPEmergencia = it[Victima.folioPEmergencia]
+                )
+            }
     }
 
 
