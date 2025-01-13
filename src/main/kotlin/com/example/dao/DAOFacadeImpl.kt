@@ -311,6 +311,41 @@ class DAOFacadeImpl : DAOFacade {
             }.mapNotNull(::resultToUsuario).singleOrNull()
         }
     }
+    override suspend fun loginConCargo (nombreUsuario: String, contrasena: String): Pair<Usuarios?, Cargos?> {
+        return transaction {
+            Usuario.select {
+                (Usuario.nombreUsuario eq nombreUsuario) and (Usuario.contrasena eq contrasena)
+            }.mapNotNull(::resultToUsuario).singleOrNull()
+                ?.let { usuario ->
+                    val cargo = getCargoByIdUsuario(usuario.idUsuario!!)
+                    Pair(usuario, cargo)
+                } ?: Pair(null, null)
+        }
+
+    }
+
+
+    fun getCargoByIdUsuario(idUsuario: Int): Cargos? {
+        return transaction {
+            // Consulta al voluntario para obtener su idCargo
+            Voluntario
+                .select { Voluntario.idUsuario eq idUsuario }
+                .mapNotNull { row ->
+                    val idCargo = row[Voluntario.idCargo]
+                    Cargo
+                        .select { Cargo.idCargo eq idCargo }
+                        .mapNotNull { cargoRow ->
+                            Cargos(
+                                idCargo = cargoRow[Cargo.idCargo],
+                                nombreCarg = cargoRow[Cargo.nombreCarg]
+                            )
+                        }
+                        .singleOrNull()
+                }
+                .singleOrNull()
+        }
+    }
+
 
 
     // Voluntario implementation
@@ -1764,6 +1799,91 @@ class DAOFacadeImpl : DAOFacade {
     suspend fun existeNombreUsuario(nombreUsuario: String): Boolean = transaction {
         Usuario.select { Usuario.nombreUsuario eq nombreUsuario }.count() > 0
     }
+
+
+
+
+    // crea victimas en la base de datos y las asocia a un parte de emergencia
+    override suspend fun createVictimas(victimas: List<Victimas>, folioPEmergencia: Int): List<Victimas> = transaction {
+        val insertStatement = Victima.batchInsert(victimas) { victima ->
+            this[Victima.rutVictima] = victima.rutVictima
+            this[Victima.nombreVictima] = victima.nombreVictima
+            this[Victima.edadVictima] = victima.edadVictima
+            this[Victima.descripcion] = victima.descripcion
+            this[Victima.folioPEmergencia] = folioPEmergencia
+        }
+
+        insertStatement.mapIndexed { index, result ->
+            val idVictima = result[Victima.idVictima]
+            victimas[index].copy(idVictima = idVictima)
+        }
+    }
+
+    //crea vehiculos en la base de datos y las asocia a un parte de emergencia
+    override suspend fun createVehiculos(vehiculos: List<Vehiculos>, folioPEmergencia: Int): List<Vehiculos> = transaction {
+        val insertStatement = Vehiculo.batchInsert(vehiculos) { vehiculo ->
+            this[Vehiculo.patente] = vehiculo.patente
+            this[Vehiculo.marca] = vehiculo.marca
+            this[Vehiculo.modelo] = vehiculo.modelo
+            this[Vehiculo.tipoVehiculo] = vehiculo.tipoVehiculo
+            this[Vehiculo.folioPEmergencia] = folioPEmergencia
+        }
+
+        insertStatement.mapIndexed { index, result ->
+            val idVehiculo = result[Vehiculo.idVehiculo]
+            vehiculos[index].copy(idVehiculo = idVehiculo)
+        }
+    }
+
+    //crea instituciones en la base de datos y las asocia a un parte de emergencia
+    override suspend fun createInstituciones(instituciones: List<Instituciones>, folioPEmergencia: Int): List<Instituciones> = transaction {
+        val insertStatement = Institucion.batchInsert(instituciones) { institucion ->
+            this[Institucion.nombreInstitucion] = institucion.nombreInstitucion
+            this[Institucion.tipoInstitucion] = institucion.tipoInstitucion
+            this[Institucion.nombrePersonaCargo] = institucion.nombrePersonaCargo
+            this[Institucion.horaLlegada] = institucion.horaLlegada
+            this[Institucion.folioPEmergencia] = folioPEmergencia
+        }
+
+        insertStatement.mapIndexed { index, result ->
+            val idInstitucion = result[Institucion.idInstitucion]
+            instituciones[index].copy(idInstitucion = idInstitucion)
+        }
+    }
+    //crea inmuebles en la base de datos y las asocia a un parte de emergencia
+    override suspend fun createInmuebles(inmuebles: List<Inmuebles>, folioPEmergencia: Int): List<Inmuebles> = transaction {
+        val insertStatement = Inmueble.batchInsert(inmuebles) { inmueble ->
+            this[Inmueble.direccion] = inmueble.direccion
+            this[Inmueble.tipoInmueble] = inmueble.tipoInmueble
+            this[Inmueble.estadoInmueble] = inmueble.estadoInmueble
+            this[Inmueble.folioPEmergencia] = folioPEmergencia
+        }
+
+        insertStatement.mapIndexed { index, result ->
+            val idInmueble = result[Inmueble.idInmueble]
+            inmuebles[index].copy(idInmueble = idInmueble)
+        }
+    }
+
+    //deleteVictimasByFolio
+    override suspend fun deleteVictimasByFolio(folioPEmergencia: Int): Boolean = transaction {
+        Victima.deleteWhere { Victima.folioPEmergencia eq folioPEmergencia } > 0
+    }
+    //deleteVehiculosByFolio
+    override suspend fun deleteVehiculosByFolio(folioPEmergencia: Int): Boolean = transaction {
+        Vehiculo.deleteWhere { Vehiculo.folioPEmergencia eq folioPEmergencia } > 0
+    }
+    //deleteInstitucionesByFolio
+    override suspend fun deleteInstitucionesByFolio(folioPEmergencia: Int): Boolean = transaction {
+        Institucion.deleteWhere { Institucion.folioPEmergencia eq folioPEmergencia } > 0
+    }
+    //deleteInmueblesByFolio
+    override suspend fun deleteInmueblesByFolio(folioPEmergencia: Int): Boolean = transaction {
+        Inmueble.deleteWhere { Inmueble.folioPEmergencia eq folioPEmergencia } > 0
+    }
+
+
+
 
 
 

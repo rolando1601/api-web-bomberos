@@ -1,6 +1,7 @@
 package com.example.routes
 
 import com.example.dao.DAOFacadeImpl
+import com.example.models.CreateInmueblesRequest
 import com.example.models.Inmuebles
 import io.ktor.http.*
 import io.ktor.server.request.*
@@ -100,6 +101,35 @@ fun Route.inmuebleRoutes(dao: DAOFacadeImpl) {
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al eliminar inmueble: ${e.message}"))
             }
+        }
+
+
+        // Obtener inmuebles por folio de parte de emergencia (GET /inmueble/folioPEmergencia/{folioPEmergencia})
+        post("/crear-varios") {
+            val request = call.receive<CreateInmueblesRequest>()
+
+            // Verifica que el folioPEmergencia exista
+            val parteEmergenciaExiste = dao.getParteEmergencia(request.folioPEmergencia) != null
+            if (!parteEmergenciaExiste) {
+                call.respond(HttpStatusCode.BadRequest, "El folioPEmergencia no existe.")
+                return@post
+            }
+
+            // Mapea los datos recibidos al modelo Inmuebles
+            val inmuebles = request.inmuebles.map { inmueble ->
+                Inmuebles(
+                    direccion = inmueble.direccion,
+                    tipoInmueble = inmueble.tipoInmueble,
+                    estadoInmueble = inmueble.estadoInmueble,
+                    folioPEmergencia = request.folioPEmergencia
+                )
+            }
+
+            // Llama al DAO para guardar los inmuebles
+            val result = dao.createInmuebles(inmuebles, request.folioPEmergencia)
+
+            // Devuelve la respuesta con los inmuebles creados
+            call.respond(HttpStatusCode.Created, result)
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.example.routes
 
 import com.example.dao.DAOFacadeImpl
+import com.example.models.CreateVictimasRequest
 import com.example.models.Victimas
 import io.ktor.http.*
 import io.ktor.server.request.*
@@ -103,5 +104,38 @@ fun Route.victimaRoutes(dao: DAOFacadeImpl) {
                 call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al eliminar víctima: ${e.message}"))
             }
         }
+
+
+        post("/victimas/crear") {
+            val request = call.receive<CreateVictimasRequest>()
+
+            // Valida que el folioPEmergencia exista
+            val parteEmergenciaExiste = dao.getParteEmergencia(request.folioPEmergencia) != null
+            if (!parteEmergenciaExiste) {
+                call.respond(HttpStatusCode.BadRequest, "El folioPEmergencia no existe.")
+                return@post
+            }
+
+            // Mapea las víctimas recibidas al modelo
+            val victimas = request.victimas.map { victima ->
+                Victimas(
+                    rutVictima = victima.rutVictima,
+                    nombreVictima = victima.nombreVictima,
+                    edadVictima = victima.edadVictima,
+                    descripcion = victima.descripcion,
+                    folioPEmergencia = request.folioPEmergencia
+                )
+            }
+
+            // Inserta las víctimas usando el DAO
+            val result = dao.createVictimas(victimas, request.folioPEmergencia)
+
+            // Devuelve las víctimas creadas
+            call.respond(HttpStatusCode.Created, result)
+        }
+
+
+
+
     }
 }

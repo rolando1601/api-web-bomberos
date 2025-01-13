@@ -8,5 +8,10 @@ data class ParteEmergenciaRequest2(
     val moviles: List<Int>? = null, // IDs de los móviles
     val voluntarios: List<Int>? = null, // IDs de los voluntarios
     val materialesP: List<Int>? = null, // IDs de los materiales peligrosos
-    val partesAsistencia: Partes_asistencia? = null
+    val partesAsistencia: Partes_asistencia? = null,
+
+    val victimas: List<VictimasRequest>? = null,
+    val vehiculos: List<VehiculoRequest>? = null,
+    val instituciones: List<InstitucionRequest>? = null,
+    val inmuebles: List<InmuebleRequest>? = null
 )

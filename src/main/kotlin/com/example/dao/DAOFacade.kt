@@ -162,6 +162,25 @@ interface DAOFacade {
     suspend fun deleteTipoCitacion(idTipoLlamado: Int): Boolean
     suspend fun updateTipoCitacion(idTipoLlamado: Int, nombreTipoLlamado: String): TipoCitacion
 
+    //login con cargo
+    suspend fun loginConCargo (nombreUsuario: String, contrasena: String): Pair<Usuarios?, Cargos?>
+
+    //arreglo de victimas
+    suspend fun createVictimas(victimas: List<Victimas>, folioPEmergencia: Int): List<Victimas>
+    //arreglo de vehiculos
+    suspend fun createVehiculos(vehiculos: List<Vehiculos>, folioPEmergencia: Int): List<Vehiculos>
+    //arreglo de instituciones
+    suspend fun createInstituciones(instituciones: List<Instituciones>, folioPEmergencia: Int): List<Instituciones>
+    //arreglo de inmuebles
+    suspend fun createInmuebles(inmuebles: List<Inmuebles>, folioPEmergencia: Int): List<Inmuebles>
+    //deleteVictimasByFolio
+    suspend fun deleteVictimasByFolio(folioPEmergencia: Int): Boolean
+    //deleteVehiculosByFolio
+    suspend fun deleteVehiculosByFolio(folioPEmergencia: Int): Boolean
+    //deleteInstitucionesByFolio
+    suspend fun deleteInstitucionesByFolio(folioPEmergencia: Int): Boolean
+    //deleteInmueblesByFolio
+    suspend fun deleteInmueblesByFolio(folioPEmergencia: Int): Boolean
 
 
 }

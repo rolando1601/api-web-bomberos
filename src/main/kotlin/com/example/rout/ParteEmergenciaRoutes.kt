@@ -1,10 +1,8 @@
 package com.example.routes
 
 import com.example.dao.DAOFacadeImpl
-import com.example.models.ParteEmergenciaRequest2
+import com.example.models.*
 
-import com.example.models.ParteEmergenciaResponse
-import com.example.models.Partes_emergencia
 import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -211,9 +209,114 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
         }
 
         // Ruta para guardar un parte de emergencia
+//        post("/guardar") {
+//            try {
+//                // Recibir el objeto ParteEmergencia
+//                val request = call.receive<ParteEmergenciaRequest2>()
+//
+//                // Verificar si el folio del parte de emergencia está presente (actualización) o no (creación)
+//                val resultado = if (request.parteEmergencia.folioPEmergencia == null) {
+//                    // Crear un nuevo parte de emergencia
+//                    dao.createParteEmergencia(
+//                        horaInicio = request.parteEmergencia.horaInicio,
+//                        horaFin = request.parteEmergencia.horaFin,
+//                        fechaEmergencia = request.parteEmergencia.fechaEmergencia,
+//                        preInforme = request.parteEmergencia.preInforme,
+//                        llamarEmpresaQuimica = request.parteEmergencia.llamarEmpresaQuimica,
+//                        descripcionMaterialP = request.parteEmergencia.descripcionMaterialP,
+//                        direccionEmergencia = request.parteEmergencia.direccionEmergencia,
+//                        idOficial = request.parteEmergencia.idOficial,
+//                        idClaveEmergencia = request.parteEmergencia.idClaveEmergencia,
+//                        folioPAsistencia = request.parteEmergencia.folioPAsistencia,
+//                    )
+//                } else {
+//
+//                    // Actualizar un parte de emergencia existente
+//                    val folioPEmergencia = request.parteEmergencia.folioPEmergencia
+//                    dao.updateParteEmergencia(
+//                        folioPEmergencia = folioPEmergencia,
+//                        horaInicio = request.parteEmergencia.horaInicio,
+//                        horaFin = request.parteEmergencia.horaFin,
+//                        fechaEmergencia = request.parteEmergencia.fechaEmergencia,
+//                        preInforme = request.parteEmergencia.preInforme,
+//                        llamarEmpresaQuimica = request.parteEmergencia.llamarEmpresaQuimica,
+//                        descripcionMaterialP = request.parteEmergencia.descripcionMaterialP,
+//                        direccionEmergencia = request.parteEmergencia.direccionEmergencia,
+//                        idOficial = request.parteEmergencia.idOficial,
+//                        idClaveEmergencia = request.parteEmergencia.idClaveEmergencia,
+//                        folioPAsistencia = request.parteEmergencia.folioPAsistencia,
+//
+//                    )
+//                // Actualizar relaciones con móviles, voluntarios y parte de asistencia
+//                folioPEmergencia?.let {
+//                    //limpiar relaciones
+//                    dao.deleteParteEmergenciaMoviles(folioPEmergencia)
+//                    dao.deleteParteEmergenciaVoluntarios(folioPEmergencia)
+//                    dao.deleteParteEmergenciaMateriales(folioPEmergencia)
+//                    //asociar nuevos moviles
+//
+//                    request.materialesP?.forEach { idMaterialP ->
+//                        dao.createParteEmergenciaMaterial(folioPEmergencia, idMaterialP)
+//                    }
+//                    //asociar nuevos materiales
+//                    request.moviles?.forEach { idMovil ->
+//                        dao.createParteEmergenciaMovil(folioPEmergencia, idMovil)
+//                    }
+//                    //asociar nuevos voluntarios
+//                    request.voluntarios?.forEach { idVoluntario ->
+//                        dao.createParteEmergenciaVoluntario(folioPEmergencia, idVoluntario)
+//                    }
+//
+//                }
+//                    request.parteEmergencia
+//                }
+//                //se crea el parte de emergencia se asocian los moviles, voluntarios y materiales
+//                if(request.parteEmergencia.folioPEmergencia == null){
+//                    request.moviles?.forEach { idMovil ->
+//                        dao.createParteEmergenciaMovil(resultado.folioPEmergencia!!, idMovil)
+//                    }
+//                    request.voluntarios?.forEach { idVoluntario ->
+//                        dao.createParteEmergenciaVoluntario(resultado.folioPEmergencia!!, idVoluntario)
+//                    }
+//                    request.materialesP?.forEach { idMaterialP ->
+//                        dao.createParteEmergenciaMaterial(resultado.folioPEmergencia!!, idMaterialP)
+//                    }
+//                }
+//                //obtiener relaciones actualizadas
+//                val (moviles, voluntarios, materialesP, parteAsistencia) = dao.getParteEmergenciaWithRelations(resultado.folioPEmergencia!!)
+//
+//                val response = ParteEmergenciaResponse(
+//                    folioPEmergencia = resultado.folioPEmergencia,
+//                    horaInicio = resultado.horaInicio,
+//                    horaFin = resultado.horaFin,
+//                    fechaEmergencia = resultado.fechaEmergencia,
+//                    preInforme = resultado.preInforme,
+//                    llamarEmpresaQuimica = resultado.llamarEmpresaQuimica,
+//                    descripcionMaterialP = resultado.descripcionMaterialP,
+//                    direccionEmergencia = resultado.direccionEmergencia,
+//                    idOficial = resultado.idOficial,
+//                    oficial = dao.getVoluntario(resultado.idOficial),
+//                    idClaveEmergencia = resultado.idClaveEmergencia,
+//                    claveEmergencia = dao.getClaveEmergencia(resultado.idClaveEmergencia),
+//                    folioPAsistencia = resultado.folioPAsistencia,
+//                    parteAsistencia = parteAsistencia,
+//                    materialesP = materialesP,
+//                    voluntarios = voluntarios,
+//                    moviles = moviles
+//
+//                )
+//                call.respond(HttpStatusCode.OK, response)
+//            } catch (e: IllegalArgumentException) {
+//                call.respond(HttpStatusCode.BadRequest, mapOf("error" to e.message))
+//            } catch (e: Exception) {
+//                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al guardar parte emergencia: ${e.message}"))
+//            }
+//        }
+
+        // Ruta para guardar un parte de emergencia
         post("/guardar") {
             try {
-                // Recibir el objeto ParteEmergencia
+                // Recibir el objeto ParteEmergenciaRequest2
                 val request = call.receive<ParteEmergenciaRequest2>()
 
                 // Verificar si el folio del parte de emergencia está presente (actualización) o no (creación)
@@ -232,7 +335,6 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
                         folioPAsistencia = request.parteEmergencia.folioPAsistencia,
                     )
                 } else {
-
                     // Actualizar un parte de emergencia existente
                     val folioPEmergencia = request.parteEmergencia.folioPEmergencia
                     dao.updateParteEmergencia(
@@ -247,46 +349,72 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
                         idOficial = request.parteEmergencia.idOficial,
                         idClaveEmergencia = request.parteEmergencia.idClaveEmergencia,
                         folioPAsistencia = request.parteEmergencia.folioPAsistencia,
-
                     )
-                // Actualizar relaciones con móviles, voluntarios y parte de asistencia
-                folioPEmergencia?.let {
-                    //limpiar relaciones
-                    dao.deleteParteEmergenciaMoviles(folioPEmergencia)
-                    dao.deleteParteEmergenciaVoluntarios(folioPEmergencia)
-                    dao.deleteParteEmergenciaMateriales(folioPEmergencia)
-                    //asociar nuevos moviles
 
-                    request.materialesP?.forEach { idMaterialP ->
-                        dao.createParteEmergenciaMaterial(folioPEmergencia, idMaterialP)
-                    }
-                    //asociar nuevos materiales
-                    request.moviles?.forEach { idMovil ->
-                        dao.createParteEmergenciaMovil(folioPEmergencia, idMovil)
-                    }
-                    //asociar nuevos voluntarios
-                    request.voluntarios?.forEach { idVoluntario ->
-                        dao.createParteEmergenciaVoluntario(folioPEmergencia, idVoluntario)
+                    // Limpiar relaciones existentes y asociar nuevas
+                    folioPEmergencia?.let { folio ->
+                        // Limpiar relaciones
+                        dao.deleteParteEmergenciaMoviles(folio)
+                        dao.deleteParteEmergenciaVoluntarios(folio)
+                        dao.deleteParteEmergenciaMateriales(folio)
+                        dao.deleteVictimasByFolio(folio)
+                        dao.deleteVehiculosByFolio(folio)
+                        dao.deleteInstitucionesByFolio(folio)
+                        dao.deleteInmueblesByFolio(folio)
+
+                        // Reasociar relaciones
+                        request.materialesP?.forEach { idMaterialP -> dao.createParteEmergenciaMaterial(folio, idMaterialP) }
+                        request.moviles?.forEach { idMovil -> dao.createParteEmergenciaMovil(folio, idMovil) }
+                        request.voluntarios?.forEach { idVoluntario -> dao.createParteEmergenciaVoluntario(folio, idVoluntario) }
+
+                        request.victimas?.let { victimas ->
+                            dao.createVictimas(victimas.map { Victimas(null, it.rutVictima, it.nombreVictima, it.edadVictima, it.descripcion, folio) }, folio)
+                        }
+
+                        request.vehiculos?.let { vehiculos ->
+                            dao.createVehiculos(vehiculos.map { Vehiculos(null, it.patente, it.marca, it.modelo, it.tipoVehiculo, folio) }, folio)
+                        }
+
+                        request.instituciones?.let { instituciones ->
+                            dao.createInstituciones(instituciones.map { Instituciones(null, it.nombreInstitucion, it.tipoInstitucion, it.nombrePersonaCargo, it.horaLlegada, folio) }, folio)
+                        }
+
+                        request.inmuebles?.let { inmuebles ->
+                            dao.createInmuebles(inmuebles.map { Inmuebles(null, it.direccion, it.tipoInmueble, it.estadoInmueble, folio) }, folio)
+                        }
                     }
 
-                }
                     request.parteEmergencia
                 }
-                //se crea el parte de emergencia se asocian los moviles, voluntarios y materiales
-                if(request.parteEmergencia.folioPEmergencia == null){
-                    request.moviles?.forEach { idMovil ->
-                        dao.createParteEmergenciaMovil(resultado.folioPEmergencia!!, idMovil)
+
+                // Si es una creación, asocia las relaciones
+                if (request.parteEmergencia.folioPEmergencia == null) {
+                    val folio = resultado.folioPEmergencia!!
+                    request.moviles?.forEach { idMovil -> dao.createParteEmergenciaMovil(folio, idMovil) }
+                    request.voluntarios?.forEach { idVoluntario -> dao.createParteEmergenciaVoluntario(folio, idVoluntario) }
+                    request.materialesP?.forEach { idMaterialP -> dao.createParteEmergenciaMaterial(folio, idMaterialP) }
+
+                    request.victimas?.let { victimas ->
+                        dao.createVictimas(victimas.map { Victimas(null, it.rutVictima, it.nombreVictima, it.edadVictima, it.descripcion, folio) }, folio)
                     }
-                    request.voluntarios?.forEach { idVoluntario ->
-                        dao.createParteEmergenciaVoluntario(resultado.folioPEmergencia!!, idVoluntario)
+
+                    request.vehiculos?.let { vehiculos ->
+                        dao.createVehiculos(vehiculos.map { Vehiculos(null, it.patente, it.marca, it.modelo, it.tipoVehiculo, folio) }, folio)
                     }
-                    request.materialesP?.forEach { idMaterialP ->
-                        dao.createParteEmergenciaMaterial(resultado.folioPEmergencia!!, idMaterialP)
+
+                    request.instituciones?.let { instituciones ->
+                        dao.createInstituciones(instituciones.map { Instituciones(null, it.nombreInstitucion, it.tipoInstitucion, it.nombrePersonaCargo, it.horaLlegada, folio) }, folio)
+                    }
+
+                    request.inmuebles?.let { inmuebles ->
+                        dao.createInmuebles(inmuebles.map { Inmuebles(null, it.direccion, it.tipoInmueble, it.estadoInmueble, folio) }, folio)
                     }
                 }
-                //obtiener relaciones actualizadas
+
+                // Obtener relaciones actualizadas
                 val (moviles, voluntarios, materialesP, parteAsistencia) = dao.getParteEmergenciaWithRelations(resultado.folioPEmergencia!!)
 
+                // Crear respuesta
                 val response = ParteEmergenciaResponse(
                     folioPEmergencia = resultado.folioPEmergencia,
                     horaInicio = resultado.horaInicio,
@@ -305,15 +433,17 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
                     materialesP = materialesP,
                     voluntarios = voluntarios,
                     moviles = moviles
-
                 )
+
+                // Responder con éxito
                 call.respond(HttpStatusCode.OK, response)
             } catch (e: IllegalArgumentException) {
                 call.respond(HttpStatusCode.BadRequest, mapOf("error" to e.message))
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al guardar parte emergencia: ${e.message}"))
+                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al guardar parte de emergencia: ${e.message}"))
             }
         }
+
 
 
     }
