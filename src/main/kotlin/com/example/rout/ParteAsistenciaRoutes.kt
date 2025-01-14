@@ -8,6 +8,7 @@ import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.datetime.LocalDate
 
 fun Route.parteAsistenciaRoutes(dao: DAOFacadeImpl) {
     route("/parte-asistencia") {
@@ -297,6 +298,65 @@ fun Route.parteAsistenciaRoutes(dao: DAOFacadeImpl) {
                 call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al guardar parte asistencia: ${e.message}"))
             }
         }
+        // Obtener partes de asistencia dentro de un rango de fechas
+        get("/fechas") {
+            try {
+                // Leer los parámetros de fecha desde la URL
+                val fechaInicioParam = call.request.queryParameters["fechaInicio"]
+                val fechaFinParam = call.request.queryParameters["fechaFin"]
+
+                // Validar que las fechas no sean nulas
+                if (fechaInicioParam.isNullOrBlank() || fechaFinParam.isNullOrBlank()) {
+                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Parámetros 'fechaInicio' y 'fechaFin' son obligatorios."))
+                    return@get
+                }
+
+                // Convertir las fechas a LocalDate
+                val fechaInicio = LocalDate.parse(fechaInicioParam)
+                val fechaFin = LocalDate.parse(fechaFinParam)
+
+                // Validar que fechaInicio <= fechaFin
+                if (fechaInicio > fechaFin) {
+                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to "La fecha de inicio no puede ser mayor que la fecha de fin."))
+                    return@get
+                }
+
+                // Obtener los partes de asistencia desde el DAO
+                val partesAsistencia = dao.getPartesAsistenciaByFechas(fechaInicio, fechaFin)
+
+                // Responder con los resultados
+                call.respond(HttpStatusCode.OK, partesAsistencia)
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al obtener partes de asistencia: ${e.message}"))
+            }
+        }
+
+        // Obtener partes de asistencia de un día específico
+        get("/fecha") {
+            try {
+                // Leer el parámetro de fecha desde la URL
+                val fechaParam = call.parameters["fecha"]
+
+                // Validar que la fecha no sea nula
+                if (fechaParam.isNullOrBlank()) {
+                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Parámetro 'fecha' es obligatorio."))
+                    return@get
+                }
+
+                // Convertir la fecha a LocalDate
+                val fecha = LocalDate.parse(fechaParam)
+
+                // Obtener los partes de asistencia desde el DAO
+                val partesAsistencia = dao.getPartesAsistenciaByFecha(fecha)
+
+                // Responder con los resultados
+                call.respond(HttpStatusCode.OK, partesAsistencia)
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al obtener partes de asistencia: ${e.message}"))
+            }
+        }
+
+
 
 
 

@@ -1940,6 +1940,97 @@ class DAOFacadeImpl : DAOFacade {
             }
     }
 
+    //getPartesEmergenciaByFechas
+    fun getPartesEmergenciaByFechas(fechaInicio: LocalDate, fechaFin: LocalDate): List<Partes_emergencia> {
+        return transaction {
+            Parte_emergencia.select {
+                (Parte_emergencia.fechaEmergencia greaterEq fechaInicio) and
+                        (Parte_emergencia.fechaEmergencia lessEq fechaFin)
+            }.map { row ->
+                Partes_emergencia(
+                    folioPEmergencia = row[Parte_emergencia.folioPEmergencia],
+                    horaInicio = row[Parte_emergencia.horaInicio],
+                    horaFin = row[Parte_emergencia.horaFin],
+                    fechaEmergencia = row[Parte_emergencia.fechaEmergencia],
+                    preInforme = row[Parte_emergencia.preInforme],
+                    llamarEmpresaQuimica = row[Parte_emergencia.llamarEmpresaQuimica],
+                    descripcionMaterialP = row[Parte_emergencia.descripcionMaterialP],
+                    direccionEmergencia = row[Parte_emergencia.direccionEmergencia],
+                    idOficial = row[Parte_emergencia.idOficial],
+                    idClaveEmergencia = row[Parte_emergencia.idClaveEmergencia],
+                    folioPAsistencia = row[Parte_emergencia.folioPAsistencia]
+                )
+            }
+        }
+    }
+    fun getPartesAsistenciaByFechas(fechaInicio: LocalDate, fechaFin: LocalDate): List<Partes_asistencia> {
+        return transaction {
+            Parte_asistencia.select {
+                (Parte_asistencia.fechaAsistencia greaterEq fechaInicio) and
+                        (Parte_asistencia.fechaAsistencia lessEq fechaFin)
+            }.map { row ->
+                Partes_asistencia(
+                    folioPAsistencia = row[Parte_asistencia.folioPAsistencia],
+                    aCargoDelCuerpo = row[Parte_asistencia.aCargoDelCuerpo],
+                    aCargoDeLaCompania = row[Parte_asistencia.aCargoDeLaCompania],
+                    fechaAsistencia = row[Parte_asistencia.fechaAsistencia],
+                    horaInicio = row[Parte_asistencia.horaInicio],
+                    horaFin = row[Parte_asistencia.horaFin],
+                    direccionAsistencia = row[Parte_asistencia.direccionAsistencia],
+                    totalAsistencia = row[Parte_asistencia.totalAsistencia],
+                    observaciones = row[Parte_asistencia.observaciones],
+                    idTipoLlamado = row[Parte_asistencia.idTipoLlamado]
+                )
+            }
+        }
+    }
+
+    fun getPartesEmergenciaByFecha(fecha: LocalDate): List<Partes_emergencia> {
+        return transaction {
+            Parte_emergencia.select {
+                Parte_emergencia.fechaEmergencia eq fecha
+            }.map { row ->
+                Partes_emergencia(
+                    folioPEmergencia = row[Parte_emergencia.folioPEmergencia],
+                    horaInicio = row[Parte_emergencia.horaInicio],
+                    horaFin = row[Parte_emergencia.horaFin],
+                    fechaEmergencia = row[Parte_emergencia.fechaEmergencia],
+                    preInforme = row[Parte_emergencia.preInforme],
+                    llamarEmpresaQuimica = row[Parte_emergencia.llamarEmpresaQuimica],
+                    descripcionMaterialP = row[Parte_emergencia.descripcionMaterialP],
+                    direccionEmergencia = row[Parte_emergencia.direccionEmergencia],
+                    idOficial = row[Parte_emergencia.idOficial],
+                    idClaveEmergencia = row[Parte_emergencia.idClaveEmergencia],
+                    folioPAsistencia = row[Parte_emergencia.folioPAsistencia]
+                )
+            }
+        }
+    }
+
+    //getPartesAsistenciaByFecha
+    fun getPartesAsistenciaByFecha(fecha: LocalDate): List<Partes_asistencia> {
+        return transaction {
+            Parte_asistencia.select {
+                Parte_asistencia.fechaAsistencia eq fecha
+            }.map { row ->
+                Partes_asistencia(
+                    folioPAsistencia = row[Parte_asistencia.folioPAsistencia],
+                    aCargoDelCuerpo = row[Parte_asistencia.aCargoDelCuerpo],
+                    aCargoDeLaCompania = row[Parte_asistencia.aCargoDeLaCompania],
+                    fechaAsistencia = row[Parte_asistencia.fechaAsistencia],
+                    horaInicio = row[Parte_asistencia.horaInicio],
+                    horaFin = row[Parte_asistencia.horaFin],
+                    direccionAsistencia = row[Parte_asistencia.direccionAsistencia],
+                    totalAsistencia = row[Parte_asistencia.totalAsistencia],
+                    observaciones = row[Parte_asistencia.observaciones],
+                    idTipoLlamado = row[Parte_asistencia.idTipoLlamado]
+                )
+            }
+        }
+    }
+
+
+
 
 
 

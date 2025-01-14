@@ -7,6 +7,7 @@ import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.datetime.LocalDate
 
 fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
     route("/parte-emergencia") {
@@ -96,7 +97,7 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
                     )
                     call.respond(HttpStatusCode.OK, response)
                 } else {
-                    call.respond(HttpStatusCode.NotFound, mapOf("error" to "Voluntario no encontrado"))
+                    call.respond(HttpStatusCode.NotFound, mapOf("error" to "parte no encontrado"))
                 }
             } catch (e: IllegalArgumentException) {
                 call.respond(HttpStatusCode.BadRequest, mapOf("error" to e.message))
@@ -152,6 +153,10 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
                 dao.deleteParteEmergenciaVoluntarios(folioPEmergencia)
                 dao.deleteParteEmergenciaMoviles(folioPEmergencia)
                 dao.deleteParteEmergenciaMateriales(folioPEmergencia)
+                dao.deleteVictimasByFolio(folioPEmergencia)
+                dao.deleteVehiculosByFolio(folioPEmergencia)
+                dao.deleteInstitucionesByFolio(folioPEmergencia)
+                dao.deleteInmueblesByFolio(folioPEmergencia)
                 val success = dao.deleteParteEmergencia(folioPEmergencia)
                 if (success) {
                     call.respond(HttpStatusCode.OK, mapOf("message" to "Parte de emergencia eliminado exitosamente."))
@@ -216,111 +221,6 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
                 )
             }
         }
-
-        // Ruta para guardar un parte de emergencia
-//        post("/guardar") {
-//            try {
-//                // Recibir el objeto ParteEmergencia
-//                val request = call.receive<ParteEmergenciaRequest2>()
-//
-//                // Verificar si el folio del parte de emergencia está presente (actualización) o no (creación)
-//                val resultado = if (request.parteEmergencia.folioPEmergencia == null) {
-//                    // Crear un nuevo parte de emergencia
-//                    dao.createParteEmergencia(
-//                        horaInicio = request.parteEmergencia.horaInicio,
-//                        horaFin = request.parteEmergencia.horaFin,
-//                        fechaEmergencia = request.parteEmergencia.fechaEmergencia,
-//                        preInforme = request.parteEmergencia.preInforme,
-//                        llamarEmpresaQuimica = request.parteEmergencia.llamarEmpresaQuimica,
-//                        descripcionMaterialP = request.parteEmergencia.descripcionMaterialP,
-//                        direccionEmergencia = request.parteEmergencia.direccionEmergencia,
-//                        idOficial = request.parteEmergencia.idOficial,
-//                        idClaveEmergencia = request.parteEmergencia.idClaveEmergencia,
-//                        folioPAsistencia = request.parteEmergencia.folioPAsistencia,
-//                    )
-//                } else {
-//
-//                    // Actualizar un parte de emergencia existente
-//                    val folioPEmergencia = request.parteEmergencia.folioPEmergencia
-//                    dao.updateParteEmergencia(
-//                        folioPEmergencia = folioPEmergencia,
-//                        horaInicio = request.parteEmergencia.horaInicio,
-//                        horaFin = request.parteEmergencia.horaFin,
-//                        fechaEmergencia = request.parteEmergencia.fechaEmergencia,
-//                        preInforme = request.parteEmergencia.preInforme,
-//                        llamarEmpresaQuimica = request.parteEmergencia.llamarEmpresaQuimica,
-//                        descripcionMaterialP = request.parteEmergencia.descripcionMaterialP,
-//                        direccionEmergencia = request.parteEmergencia.direccionEmergencia,
-//                        idOficial = request.parteEmergencia.idOficial,
-//                        idClaveEmergencia = request.parteEmergencia.idClaveEmergencia,
-//                        folioPAsistencia = request.parteEmergencia.folioPAsistencia,
-//
-//                    )
-//                // Actualizar relaciones con móviles, voluntarios y parte de asistencia
-//                folioPEmergencia?.let {
-//                    //limpiar relaciones
-//                    dao.deleteParteEmergenciaMoviles(folioPEmergencia)
-//                    dao.deleteParteEmergenciaVoluntarios(folioPEmergencia)
-//                    dao.deleteParteEmergenciaMateriales(folioPEmergencia)
-//                    //asociar nuevos moviles
-//
-//                    request.materialesP?.forEach { idMaterialP ->
-//                        dao.createParteEmergenciaMaterial(folioPEmergencia, idMaterialP)
-//                    }
-//                    //asociar nuevos materiales
-//                    request.moviles?.forEach { idMovil ->
-//                        dao.createParteEmergenciaMovil(folioPEmergencia, idMovil)
-//                    }
-//                    //asociar nuevos voluntarios
-//                    request.voluntarios?.forEach { idVoluntario ->
-//                        dao.createParteEmergenciaVoluntario(folioPEmergencia, idVoluntario)
-//                    }
-//
-//                }
-//                    request.parteEmergencia
-//                }
-//                //se crea el parte de emergencia se asocian los moviles, voluntarios y materiales
-//                if(request.parteEmergencia.folioPEmergencia == null){
-//                    request.moviles?.forEach { idMovil ->
-//                        dao.createParteEmergenciaMovil(resultado.folioPEmergencia!!, idMovil)
-//                    }
-//                    request.voluntarios?.forEach { idVoluntario ->
-//                        dao.createParteEmergenciaVoluntario(resultado.folioPEmergencia!!, idVoluntario)
-//                    }
-//                    request.materialesP?.forEach { idMaterialP ->
-//                        dao.createParteEmergenciaMaterial(resultado.folioPEmergencia!!, idMaterialP)
-//                    }
-//                }
-//                //obtiener relaciones actualizadas
-//                val (moviles, voluntarios, materialesP, parteAsistencia) = dao.getParteEmergenciaWithRelations(resultado.folioPEmergencia!!)
-//
-//                val response = ParteEmergenciaResponse(
-//                    folioPEmergencia = resultado.folioPEmergencia,
-//                    horaInicio = resultado.horaInicio,
-//                    horaFin = resultado.horaFin,
-//                    fechaEmergencia = resultado.fechaEmergencia,
-//                    preInforme = resultado.preInforme,
-//                    llamarEmpresaQuimica = resultado.llamarEmpresaQuimica,
-//                    descripcionMaterialP = resultado.descripcionMaterialP,
-//                    direccionEmergencia = resultado.direccionEmergencia,
-//                    idOficial = resultado.idOficial,
-//                    oficial = dao.getVoluntario(resultado.idOficial),
-//                    idClaveEmergencia = resultado.idClaveEmergencia,
-//                    claveEmergencia = dao.getClaveEmergencia(resultado.idClaveEmergencia),
-//                    folioPAsistencia = resultado.folioPAsistencia,
-//                    parteAsistencia = parteAsistencia,
-//                    materialesP = materialesP,
-//                    voluntarios = voluntarios,
-//                    moviles = moviles
-//
-//                )
-//                call.respond(HttpStatusCode.OK, response)
-//            } catch (e: IllegalArgumentException) {
-//                call.respond(HttpStatusCode.BadRequest, mapOf("error" to e.message))
-//            } catch (e: Exception) {
-//                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al guardar parte emergencia: ${e.message}"))
-//            }
-//        }
 
         // Ruta para guardar un parte de emergencia
         post("/guardar") {
@@ -457,6 +357,142 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
                 call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al guardar parte de emergencia: ${e.message}"))
             }
         }
+
+
+
+
+
+
+        // Obtener partes de emergencia dentro de un rango de fechas
+        get("/fechas-simple") {
+            try {
+                // Leer los parámetros de fecha desde la URL
+                val fechaInicioParam = call.request.queryParameters["fechaInicio"]
+                val fechaFinParam = call.request.queryParameters["fechaFin"]
+
+                // Validar que las fechas no sean nulas
+                if (fechaInicioParam.isNullOrBlank() || fechaFinParam.isNullOrBlank()) {
+                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Parámetros 'fechaInicio' y 'fechaFin' son obligatorios."))
+                    return@get
+                }
+
+                // Convertir las fechas a LocalDate
+                val fechaInicio = LocalDate.parse(fechaInicioParam)
+                val fechaFin = LocalDate.parse(fechaFinParam)
+
+                // Validar que fechaInicio <= fechaFin
+                if (fechaInicio > fechaFin) {
+                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to "La fecha de inicio no puede ser mayor que la fecha de fin."))
+                    return@get
+                }
+
+                // Obtener los partes de emergencia desde el DAO
+                val partesEmergencia = dao.getPartesEmergenciaByFechas(fechaInicio, fechaFin)
+
+                // Responder con los resultados
+                call.respond(HttpStatusCode.OK, partesEmergencia)
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al obtener partes de emergencia: ${e.message}"))
+            }
+        }
+
+        // Obtener partes de emergencia dentro de un rango de fechas con sus relaciones
+        get("/fechas") {
+            try {
+                // Leer los parámetros de fecha desde la URL
+                val fechaInicioParam = call.request.queryParameters["fechaInicio"]
+                val fechaFinParam = call.request.queryParameters["fechaFin"]
+
+                // Validar que las fechas no sean nulas
+                if (fechaInicioParam.isNullOrBlank() || fechaFinParam.isNullOrBlank()) {
+                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Parámetros 'fechaInicio' y 'fechaFin' son obligatorios."))
+                    return@get
+                }
+
+                // Convertir las fechas a LocalDate
+                val fechaInicio = LocalDate.parse(fechaInicioParam)
+                val fechaFin = LocalDate.parse(fechaFinParam)
+
+                // Validar que fechaInicio <= fechaFin
+                if (fechaInicio > fechaFin) {
+                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to "La fecha de inicio no puede ser mayor que la fecha de fin."))
+                    return@get
+                }
+
+                // Obtener los partes de emergencia dentro del rango de fechas
+                val partesEmergencia = dao.getPartesEmergenciaByFechas(fechaInicio, fechaFin)
+
+                // Construir la respuesta con sus relaciones
+                val response = partesEmergencia.map { parteEmergencia ->
+                    val (moviles, voluntarios, materialesP) = dao.getParteEmergenciaWithRelations(parteEmergencia.folioPEmergencia!!)
+                    ParteEmergenciaResponse(
+                        folioPEmergencia = parteEmergencia.folioPEmergencia,
+                        horaInicio = parteEmergencia.horaInicio,
+                        horaFin = parteEmergencia.horaFin,
+                        fechaEmergencia = parteEmergencia.fechaEmergencia,
+                        preInforme = parteEmergencia.preInforme,
+                        llamarEmpresaQuimica = parteEmergencia.llamarEmpresaQuimica,
+                        descripcionMaterialP = parteEmergencia.descripcionMaterialP,
+                        direccionEmergencia = parteEmergencia.direccionEmergencia,
+                        idOficial = parteEmergencia.idOficial,
+                        oficial = dao.getVoluntario(parteEmergencia.idOficial),
+                        idClaveEmergencia = parteEmergencia.idClaveEmergencia,
+                        claveEmergencia = dao.getClaveEmergencia(parteEmergencia.idClaveEmergencia),
+                        folioPAsistencia = parteEmergencia.folioPAsistencia,
+                        parteAsistencia = parteEmergencia.folioPAsistencia?.let { dao.getParteAsistencia(it) },
+                        voluntarios = voluntarios,
+                        moviles = moviles,
+                        materialesP = materialesP,
+                        victimas = dao.getVictimasByFolio(parteEmergencia.folioPEmergencia!!),
+                        vehiculos = dao.getVehiculosByFolio(parteEmergencia.folioPEmergencia!!),
+                        instituciones = dao.getInstitucionesByFolio(parteEmergencia.folioPEmergencia!!),
+                        inmuebles = dao.getInmueblesByFolio(parteEmergencia.folioPEmergencia!!)
+                    )
+                }
+
+                // Responder con los resultados
+                call.respond(HttpStatusCode.OK, response)
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al obtener partes de emergencia: ${e.message}"))
+            }
+        }
+
+        // Obtener partes de emergencia de un día específico
+        get("/fecha") {
+            try {
+                // Leer el parámetro de fecha desde la URL
+                val fechaParam = call.request.queryParameters["fecha"]
+
+                // Validar que el parámetro de fecha no sea nulo o vacío
+                if (fechaParam.isNullOrBlank()) {
+                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to "El parámetro 'fecha' es obligatorio."))
+                    return@get
+                }
+
+                // Convertir el parámetro a LocalDate
+                val fecha = LocalDate.parse(fechaParam)
+
+                // Obtener los partes de emergencia para esa fecha
+                val partesEmergencia = dao.getPartesEmergenciaByFecha(fecha)
+
+                // Responder con los resultados
+                call.respond(HttpStatusCode.OK, partesEmergencia)
+            } catch (e: IllegalArgumentException) {
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Formato de fecha inválido. Usa el formato 'YYYY-MM-DD'."))
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Error al obtener partes de emergencia: ${e.message}"))
+            }
+        }
+
+
+
+
+
+
+
+
+
+
 
 
 
