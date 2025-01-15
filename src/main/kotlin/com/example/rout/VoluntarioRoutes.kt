@@ -232,6 +232,18 @@ fun Route.voluntarioRoutes(dao: DAOFacadeImpl) {
             try {
                 val voluntario = call.receive<Voluntarios>()
 
+                //verificar si existe un voluntario con el mismo rut
+                val voluntarioExistente = dao.getVoluntarioByRut(voluntario.rutVoluntario)
+                if (voluntarioExistente != null) {
+                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Ya existe un voluntario con el mismo rut"))
+                    return@post
+                }
+                //verificar si existe un voluntario con la misma clave radial
+                val voluntarioExistenteClave = dao.getVoluntarioByClave(voluntario.claveRadial)
+                if (voluntarioExistenteClave != null) {
+                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Ya existe un voluntario con la misma clave radial"))
+                    return@post
+                }
                 val resultado = if (voluntario.idVoluntario == null) {
                     dao.createVoluntario(
                         nombreVol = voluntario.nombreVol,

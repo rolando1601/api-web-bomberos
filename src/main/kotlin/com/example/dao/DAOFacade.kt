@@ -189,6 +189,10 @@ interface DAOFacade {
     suspend fun getInstitucionesByFolio(folioPEmergencia: Int): List<Instituciones>
     //getInmueblesByFolio
     suspend fun getInmueblesByFolio(folioPEmergencia: Int): List<Inmuebles>
+    //getVoluntarioByRut
+    suspend fun getVoluntarioByRut(rutVoluntario: String): Voluntarios?
+    //getVoluntarioByClave
+    suspend fun getVoluntarioByClave(claveRadial: String): Voluntarios?
 
 
 

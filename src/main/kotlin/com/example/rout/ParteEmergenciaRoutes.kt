@@ -346,7 +346,6 @@ fun Route.parteEmergenciaRoutes(dao: DAOFacadeImpl) {
                     vehiculos = dao.getVehiculosByFolio(resultado.folioPEmergencia!!),
                     instituciones = dao.getInstitucionesByFolio(resultado.folioPEmergencia!!),
                     inmuebles = dao.getInmueblesByFolio(resultado.folioPEmergencia!!)
-
                 )
 
                 // Responder con éxito

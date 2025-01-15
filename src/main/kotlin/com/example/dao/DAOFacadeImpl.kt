@@ -2029,6 +2029,20 @@ class DAOFacadeImpl : DAOFacade {
         }
     }
 
+    //getVoluntarioByRut
+    override suspend fun getVoluntarioByRut(rutVoluntario: String): Voluntarios? = transaction {
+        Voluntario.select { Voluntario.rutVoluntario eq rutVoluntario }
+            .mapNotNull(::resultToVoluntario)
+            .singleOrNull()
+    }
+
+    //getVoluntarioByClave
+    override suspend fun getVoluntarioByClave(claveRadial: String): Voluntarios? = transaction {
+        Voluntario.select { Voluntario.claveRadial eq claveRadial }
+            .mapNotNull(::resultToVoluntario)
+            .singleOrNull()
+    }
+
 
 
 
